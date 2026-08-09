@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+/* ده بيعرف تايليند v4 إننا هنفعل الدارك مود عن طريق كلاس dark */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary: #2563eb;
+  --color-navy: #1e3a8a;
+  --color-offwhite: #f8f9fa;
+}
