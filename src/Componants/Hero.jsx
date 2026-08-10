@@ -22,15 +22,15 @@ function Hero() {
         <div className="space-y-6">
           <div className="inline-flex items-center gap-2 bg-white dark:bg-gray-900 px-4 py-2 rounded-full shadow-sm border border-blue-100 dark:border-gray-800 text-primary text-sm font-bold">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-            🚀 نظام الطلبات اللحظية (InDrive للدروس الخصوصية)
+            🚀 وفرنا ليك وقتك في انك تدور علي مدرسين (InDrive للدروس الخصوصية)
           </div>
 
           <h1 className="text-4xl lg:text-5xl font-extrabold text-navy dark:text-white leading-tight">
             {isTeacher
               ? `أهلاً بك يا أستاذ ${userData.name}.. استقبل طلبات الطلاب حولك الآن!`
               : isStudent
-                ? `أهلاً بك يا ${userData.name}.. اطلب حصتك وحدد سعرك بنفسك!`
-                : 'منصة "علمني".. حط سعرك، تفاوض مع المدرس، واستقبل حصتك في ثوانٍ!'}
+                ? `أهلاً بك يا ${userData.name}.. اطلب الحصه التي تريدها وحدد سعرها بنفسك!`
+                : 'منصة "علمني".. حط سعرك، تفاوض مع المدرس، !'}
           </h1>
 
           <p className="text-gray-600 dark:text-gray-300 text-base leading-relaxed">
@@ -53,7 +53,8 @@ function Hero() {
             ) : isStudent ? (
               <span>
                 أنشئ طلبك الآن، حدد المادة والصف والسعر المناسب لك باستخدام نظام
-                التفاوض، واقبل عرض المعلم الأنسب لميزانيتك.
+                التفاوض، واقبل عرض المعلم الأنسب لميزانيتك. أو تصفح قائمة
+                المعلمين مباشرة.
               </span>
             ) : (
               <span>
@@ -66,22 +67,30 @@ function Hero() {
 
           <div className="flex flex-wrap gap-2 pt-1">
             <span className="bg-blue-50 dark:bg-blue-950/60 text-primary text-xs font-bold px-3.5 py-1.5 rounded-xl border border-blue-100 dark:border-blue-900">
-              ⚡ طلبات لايف (تختفي خلال دقائق)
+              طلبات لايف
             </span>
             <span className="bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 text-xs font-bold px-3.5 py-1.5 rounded-xl border border-purple-100 dark:border-purple-900">
-              💬 تفاوض مرن على السعر (+ و -)
+              تفاوض مرن على السعر
             </span>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
-            {/* زر الطالب */}
-            {isStudent && (
-              <Link
-                to="/student-request"
-                className="bg-primary hover:bg-blue-700 text-white font-bold px-8 py-4 rounded-xl shadow-lg shadow-blue-500/25 transition-all duration-300 hover:-translate-y-1 text-center"
-              >
-                اطلب طلب حالا 🚀
-              </Link>
+            {/* أزرار الطالب والزائر */}
+            {!isTeacher && (
+              <>
+                <Link
+                  to="/student-request"
+                  className="bg-primary hover:bg-blue-700 text-white font-bold px-6 py-4 rounded-xl shadow-lg shadow-blue-500/25 transition-all duration-300 hover:-translate-y-1 text-center"
+                >
+                  اطلب طلب حالا
+                </Link>
+                <Link
+                  to="/teachers"
+                  className="bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 text-navy dark:text-white border border-gray-200 dark:border-gray-800 font-bold px-6 py-4 rounded-xl transition-all duration-300 hover:-translate-y-1 text-center shadow-sm"
+                >
+                  تصفح المدرسين في النطاق الخاص بك 🔍
+                </Link>
+              </>
             )}
 
             {/* زر المدرس */}
@@ -92,18 +101,6 @@ function Hero() {
               >
                 <span>استقبل الطلبات حالا 🟢</span>
               </Link>
-            )}
-
-            {/* للزائر */}
-            {!userData && (
-              <>
-                <Link
-                  to="/auth"
-                  className="bg-primary hover:bg-blue-700 text-white font-bold px-8 py-4 rounded-xl shadow-lg shadow-blue-500/25 transition-all duration-300 hover:-translate-y-1 text-center"
-                >
-                  انضم وابدأ الآن
-                </Link>
-              </>
             )}
           </div>
         </div>
@@ -135,7 +132,7 @@ function Hero() {
                     الطالب:
                   </h4>
                   <p className="text-gray-600 dark:text-gray-300 text-xs mt-0.5">
-                    يحدد المادة والوقت والسعر بـ (+ و -)، وينتظر عروض المدرسين.
+                    يحدد المادة والوقت والسعر ب ، وينتظر عروض المدرسين.
                   </p>
                 </div>
               </div>

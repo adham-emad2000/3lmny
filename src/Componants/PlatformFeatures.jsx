@@ -155,7 +155,7 @@ function PlatformFeatures({ userType }) {
                   🔍 ابحث، قارن، واتفق بالسعر اللي يعجبك
                 </span>
                 <h3 className="text-2xl lg:text-3xl font-black text-navy dark:text-white leading-tight">
-                  لاقي المدرس الصح جنبك.. وتفاوض على السعر براحتك!
+                  هتلاقي المدرس الصح جنبك.. وتفاوض على السعر براحتك!
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-sm lg:text-base">
                   اختار مادتك ومنطقتك، وهنعرض عليك قائمة بأفضل المعلمين{" "}
