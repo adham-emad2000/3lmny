@@ -1,96 +1,128 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext"; // 👈 استدعاء الهوك
+import { useAuth } from "../context/AuthContext";
 
 function Hero() {
-  const { userData } = useAuth(); // 👈 جيبنا داتا اليوزر المركزية فوراً
+  const { userData } = useAuth();
 
-  const isTeacher = userData?.role === "teacher";
-  const isStudent = userData?.role === "student";
+  const role = userData?.role;
+  const isTeacher = role === "teacher";
+  const isStudent = role === "student";
 
   return (
     <div
       dir="rtl"
       className="min-h-[calc(100vh-80px)] bg-[#F8F9FA] dark:bg-gray-950 relative overflow-hidden flex items-center justify-center px-6 py-12 transition-colors duration-300"
     >
+      {/* خلفيات جمالية هادئة */}
       <div className="absolute top-10 right-10 w-96 h-96 bg-blue-400/10 dark:bg-blue-600/5 rounded-full blur-3xl pointer-events-none animate-pulse"></div>
       <div className="absolute bottom-10 left-10 w-96 h-96 bg-purple-400/10 dark:bg-purple-600/5 rounded-full blur-3xl pointer-events-none animate-pulse duration-1000"></div>
 
       <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
-        <div className="space-y-6">
-          <div className="inline-flex items-center gap-2 bg-white dark:bg-gray-900 px-4 py-2 rounded-full shadow-sm border border-blue-100 dark:border-gray-800 text-primary text-sm font-bold">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-            🚀 وفرنا ليك وقتك في انك تدور علي مدرسين (InDrive للدروس الخصوصية)
-          </div>
+        {/* ================= الحالة الأولى: المعلم ================= */}
+        {isTeacher && (
+          <div className="space-y-6">
+            <div className="inline-flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950/60 px-4 py-2 rounded-full shadow-sm border border-emerald-200 dark:border-emerald-900 text-emerald-700 dark:text-emerald-400 text-sm font-bold">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+              🟢 لوحة تحكم المعلم اللحظية نشطة
+            </div>
 
-          <h1 className="text-4xl lg:text-5xl font-extrabold text-navy dark:text-white leading-tight">
-            {isTeacher
-              ? `أهلاً بك يا أستاذ ${userData?.name}.. استقبل طلبات الطلاب حولك الآن!`
-              : isStudent
-                ? `أهلاً بك يا ${userData?.name}.. اطلب الحصه التي تريدها وحدد سعرها بنفسك!`
-                : 'منصة "علمني".. حط سعرك، تفاوض مع المدرس، !'}
-          </h1>
+            <h1 className="text-4xl lg:text-5xl font-extrabold text-navy dark:text-white leading-tight">
+              أهلاً بك يا أستاذ {userData?.name || "معلمنا"}.. استقبل طلبات
+              الطلاب حولك الآن!
+            </h1>
 
-          <p className="text-gray-600 dark:text-gray-300 text-base leading-relaxed">
-            {isTeacher ? (
-              <span>
-                لوحة التحكم اللحظية مفتوحة أمامك لاستقبال طلبات الطلاب في محافظة{" "}
-                <strong className="text-navy dark:text-white">
-                  {userData?.governorate}
-                </strong>{" "}
-                - منطقة{" "}
-                <strong className="text-navy dark:text-white">
-                  {userData?.area}
-                </strong>{" "}
-                لمادة{" "}
-                <strong className="text-navy dark:text-white">
-                  {userData?.subject}
-                </strong>
-                . وافق أو تفاوض على السعر فوراً!
-              </span>
-            ) : isStudent ? (
-              <span>
-                أنشئ طلبك الآن، حدد المادة والصف والسعر المناسب لك باستخدام نظام
-                التفاوض، واقبل عرض المعلم الأنسب لميزانيتك. أو تصفح قائمة
-                المعلمين مباشرة.
-              </span>
-            ) : (
-              <span>
-                سواء كنت طالباً تبحث عن مدرس وتحدد سعرك بحرية، أو معلماً ترغب في
-                استقبال طلبات مباشرة.. منصتنا توفر لك بيئة تفاعلية لحظية
-                بالكامل.
-              </span>
-            )}
-          </p>
+            <p className="text-gray-600 dark:text-gray-300 text-base leading-relaxed">
+              لوحة التحكم اللحظية مفتوحة أمامك لاستقبال طلبات الطلاب في محافظة{" "}
+              <strong className="text-navy dark:text-white">
+                {userData?.governorate || "المحافظة"}
+              </strong>{" "}
+              - منطقة{" "}
+              <strong className="text-navy dark:text-white">
+                {userData?.area || "المنطقة"}
+              </strong>{" "}
+              لمادة{" "}
+              <strong className="text-navy dark:text-white">
+                {userData?.subject || "المادة"}
+              </strong>
+              . وافق أو تفاوض على السعر فوراً!
+            </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 pt-4">
-            {isTeacher ? (
+            <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <Link
                 to="/teacher-live"
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 py-4 rounded-xl shadow-lg shadow-emerald-500/25 transition-all duration-300 hover:-translate-y-1 text-center flex items-center justify-center gap-2"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 py-4 rounded-xl shadow-lg shadow-emerald-500/25 transition-all duration-300 hover:-translate-y-1 text-center flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>استقبل الطلبات حالا 🟢</span>
               </Link>
-            ) : (
-              <>
-                <Link
-                  to="/student-request"
-                  className="bg-primary hover:bg-blue-700 text-white font-bold px-6 py-4 rounded-xl shadow-lg shadow-blue-500/25 transition-all duration-300 hover:-translate-y-1 text-center"
-                >
-                  اطلب طلب حالا
-                </Link>
-                <Link
-                  to="/teachers"
-                  className="bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 text-navy dark:text-white border border-gray-200 dark:border-gray-800 font-bold px-6 py-4 rounded-xl transition-all duration-300 hover:-translate-y-1 text-center shadow-sm"
-                >
-                  تصفح المدرسين في النطاق الخاص بك 🔍
-                </Link>
-              </>
-            )}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* الكارت التوضيحي */}
+        {/* ================= الحالة الثانية: الطالب ================= */}
+        {isStudent && (
+          <div className="space-y-6">
+            <div className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-950/60 px-4 py-2 rounded-full shadow-sm border border-blue-100 dark:border-blue-900 text-primary text-sm font-bold">
+              <span className="w-2 h-2 rounded-full bg-blue-500 animate-ping"></span>
+              🎓 مرحباً بك يا {userData?.name || "بطل"}.. اطلب حصتك الآن
+            </div>
+
+            <h1 className="text-4xl lg:text-5xl font-extrabold text-navy dark:text-white leading-tight">
+              اطلب الحصة التي تريدها وحدد سعرها بنفسك!
+            </h1>
+
+            <p className="text-gray-600 dark:text-gray-300 text-base leading-relaxed">
+              أنشئ طلبك الآن، حدد المادة والصف والسعر المناسب لك باستخدام نظام
+              التفاوض، واقبل عرض المعلم الأنسب لميزانيتك. أو تصفح قائمة المعلمين
+              مباشرة.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+              <Link
+                to="/student-request"
+                className="bg-primary hover:bg-blue-700 text-white font-bold px-6 py-4 rounded-xl shadow-lg shadow-blue-500/25 transition-all duration-300 hover:-translate-y-1 text-center cursor-pointer"
+              >
+                اطلب طلب حالا 🚀
+              </Link>
+              <Link
+                to="/teachers"
+                className="bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 text-navy dark:text-white border border-gray-200 dark:border-gray-800 font-bold px-6 py-4 rounded-xl transition-all duration-300 hover:-translate-y-1 text-center shadow-sm cursor-pointer"
+              >
+                تصفح المدرسين في النطاق الخاص بك 🔍
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* ================= الحالة الثالثة: الزائر (مش عامل لوج إن) ================= */}
+        {!isTeacher && !isStudent && (
+          <div className="space-y-6">
+            <div className="inline-flex items-center gap-2 bg-white dark:bg-gray-900 px-4 py-2 rounded-full shadow-sm border border-blue-100 dark:border-gray-800 text-primary text-sm font-bold">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+              🚀 InDrive للدروس الخصوصية في مصر
+            </div>
+
+            <h1 className="text-4xl lg:text-5xl font-extrabold text-navy dark:text-white leading-tight">
+              منصة "علمني".. حط سعرك، تفاوض مع المدرس، وابدأ التعليم!
+            </h1>
+
+            <p className="text-gray-600 dark:text-gray-300 text-base leading-relaxed">
+              سواء كنت طالباً تبحث عن مدرس وتحدد سعرك بحرية، أو معلماً ترغب في
+              استقبال طلبات مباشرة.. منصتنا توفر لك بيئة تفاعلية لحظية بالكامل.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+              <Link
+                to="/auth"
+                className="bg-primary hover:bg-blue-700 text-white font-bold px-8 py-4 rounded-xl shadow-lg shadow-blue-500/25 transition-all duration-300 text-center cursor-pointer"
+              >
+                ابدأ الان (سجل دخول) 🚀
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {/* ================= الكارت التوضيحي الثابت على اليمين/اليسار ================= */}
         <div className="relative flex justify-center">
           <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md p-8 rounded-3xl shadow-2xl shadow-indigo-900/10 border-2 border-purple-400/50 dark:border-purple-600/40 max-w-md w-full relative overflow-hidden">
             <div className="absolute top-0 right-0 w-3 h-full bg-gradient-to-b from-primary via-purple-500 to-emerald-400"></div>

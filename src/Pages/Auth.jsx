@@ -9,9 +9,11 @@ import {
   sendPasswordResetEmail,
 } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
+import { useAuth } from "../context/AuthContext"; // 👈 استدعاء الكونتكست المركزي
 
 function Auth() {
   const navigate = useNavigate();
+  const { login } = useAuth(); // 👈 استخدام دالة الـ login المركزية
   const [isLogin, setIsLogin] = useState(true);
   const [role, setRole] = useState("student");
   const [loading, setLoading] = useState(false);
@@ -31,7 +33,6 @@ function Auth() {
     return () => unsubscribe();
   }, [navigate]);
 
-  // قاعدة بيانات المحافظات والمناطق
   const egyptRegions = {
     القاهرة: [
       "مدينة نصر",
@@ -133,7 +134,6 @@ function Auth() {
     }
   };
 
-  // دالة ضغط الصورة وتصغير حجمها قبل تحويلها لـ Base64
   const compressAndConvertImage = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -176,7 +176,6 @@ function Auth() {
     });
   };
 
-  // دالة نسيت كلمة المرور
   const handleForgotPassword = async () => {
     if (!formData.email) {
       setErrorMessage("يرجى إدخال البريد الإلكتروني في حقل الإيميل أولاً.");
@@ -210,7 +209,7 @@ function Auth() {
     setErrorMessage("");
     setSuccessMessage("");
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /\S+@\S+\.\S+/;
     if (!emailRegex.test(formData.email)) {
       setErrorMessage("صيغة البريد الإلكتروني غير صحيحة.");
       setLoading(false);
@@ -264,10 +263,7 @@ function Auth() {
         const docRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          localStorage.setItem(
-            "elemny_user_data",
-            JSON.stringify(docSnap.data()),
-          );
+          login(docSnap.data()); // 👈 استخدام دالة الـ login لتحديث الكونتكست والذاكرة معاً فوراً
         }
 
         navigate("/", { replace: true });
@@ -546,7 +542,6 @@ function Auth() {
                 {showPassword ? "👁️‍🗨️" : "👁️"}
               </button>
             </div>
-            {/* زرار نسيت كلمة المرور */}
             {isLogin && (
               <div className="text-left mt-1.5">
                 <button
@@ -560,7 +555,6 @@ function Auth() {
             )}
           </div>
 
-          {/* حقول المعلم الإضافية */}
           {!isLogin && role === "teacher" && (
             <>
               <div>
@@ -703,9 +697,6 @@ function Auth() {
                   onChange={handleChange}
                   className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm text-navy dark:text-white outline-none focus:border-primary"
                 />
-                <p className="text-[11px] text-gray-400 mt-1">
-                  يجب أن يكون رقماً مصرياً صحيحاً يتكون من 11 رقماً ويبدأ بـ 01.
-                </p>
               </div>
 
               <div>
