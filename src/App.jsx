@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./Context/AuthContext"; // 👈 استدعاء الكونتكس
+import { AuthProvider } from "./context/AuthContext"; // 👈 استدعاء الكونتكس
 import Nav from "./Componants/Nav";
 import Hero from "./Componants/Hero";
 import TeacherPricingCTA from "./Componants/TeacherPricingCTA";
