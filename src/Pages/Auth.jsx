@@ -9,7 +9,7 @@ import {
   sendPasswordResetEmail,
 } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { useAuth } from "../context/AuthContext"; // 👈 استدعاء الكونتكست المركزي
+import { useAuth } from "../Context/AuthContext"; // 👈 استدعاء الكونتكست المركزي
 
 function Auth() {
   const navigate = useNavigate();
