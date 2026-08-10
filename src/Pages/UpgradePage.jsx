@@ -1,13 +1,26 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Check, ShieldCheck, X, Clock, Calendar } from "lucide-react";
+import {
+  Check,
+  ShieldCheck,
+  X,
+  Clock,
+  Calendar,
+  AlertCircle,
+} from "lucide-react";
 
 function UpgradePage() {
   const navigate = useNavigate();
 
   // جلب بيانات المستخدم من الـ LocalStorage
   const userData = JSON.parse(localStorage.getItem("elemny_user_data") || "{}");
-  const currentTier = (userData?.subscription?.tier || "free").toLowerCase();
+
+  const subTier = userData?.subscription?.tier || "free";
+  const subStatus = userData?.subscription?.status || "active";
+  const requestedTier = userData?.subscription?.requestedTier || null;
+
+  // 👈 القاعدة الصارمة: لو الحالة active الباقة تظهر، لو pending (قيد المراجعة) تفضل باقته الحقيقية القديمة (free مثلاً)
+  const currentTier = (subStatus === "active" ? subTier : "free").toLowerCase();
 
   // تدرج المستويات للمقارنة (0 أقل، 2 أعلى)
   const tierWeights = { free: 0, standard: 1, pro: 2 };
@@ -23,10 +36,13 @@ function UpgradePage() {
       price: "مجاناً",
       rawPrice: "0",
       period: "للأبد",
+      description:
+        "الباقة الأساسية للبدء والانطلاق على المنصة واستقبال الطلاب.",
       features: [
-        "إنشاء بروفايل مدرس",
-        "استقبال طلبات لايف",
-        "الظهور في نتائج البحث",
+        "إنشاء بروفايل شخصي كامل للمعلم",
+        "استقبال الطلبات اللحظية (Live) الأساسية",
+        "الظهور الطبيعي في نتائج البحث للطلاب",
+        "التواصل المباشر مع الطلاب عبر الواتساب",
       ],
       color: "gray",
     },
@@ -36,10 +52,14 @@ function UpgradePage() {
       price: "100 ج.م",
       rawPrice: "100",
       period: "في السنة",
+      description:
+        "باقة الأذك تمنحك مرونة كاملة وسرعة استجابة تضاعف فرص قبولك.",
       features: [
-        "كل مميزات الفري",
-        "إمكانية التفاوض على السعر",
-        "شارة 'سريع الرد'",
+        "كل مميزات الباقة المجانية",
+        "إمكانية التفاوض الذكي على أسعار الحصص",
+        "شارة 'سريع الرد' المميزة لزيادة الثقة",
+        "أولوية متوسطة في ترشيحات البحث",
+        "دعم فني أسرع لحل أي مشكلة تقنية",
       ],
       color: "blue",
     },
@@ -49,10 +69,15 @@ function UpgradePage() {
       price: "250 ج.م",
       rawPrice: "250",
       period: "في السنة",
+      description:
+        "باقة النخبة والسيطرة، القمة والظهور الأقصى لمضاعفة دخلك وطلابك.",
       features: [
-        "كل مميزات ستاندرد",
-        "الظهور في واجهة الموقع",
-        "أولوية قصوى في البحث",
+        "كل مميزات باقة ستاندرد المتكاملة",
+        "الظهور الحصري في واجهة الموقع الرئيسية",
+        "أولوية قصوى ودائمة في نتائج البحث",
+        "تقييم 5 نجوم بارز ومميز لبروفايلك",
+        "شارة 'مميز ومقترح' لجذب أكبر عدد من الطلاب",
+        "دعم فني VIP ومتابعة خاصة لحسابك",
       ],
       color: "purple",
     },
@@ -61,11 +86,9 @@ function UpgradePage() {
   const handleAction = (plan) => {
     const planWeight = tierWeights[plan.rawName];
 
-    if (planWeight === userWeight) {
-      // لو ضغط على باقته الحالية، يفتح له تفاصيل الاشتراك والتوقيت
+    if (planWeight === userWeight && subStatus === "active") {
       setShowModal(true);
-    } else if (planWeight > userWeight) {
-      // لو باقة أعلى، يوجهه لصفحة الدفع
+    } else if (planWeight > userWeight || subStatus === "pending") {
       navigate(`/subscribe?plan=${plan.name}&price=${plan.rawPrice}`);
     }
   };
@@ -88,20 +111,40 @@ function UpgradePage() {
       dir="rtl"
       className="min-h-screen bg-gray-50 dark:bg-gray-950 py-16 px-6 relative"
     >
-      <div className="max-w-6xl mx-auto text-center space-y-4">
-        <h2 className="text-3xl md:text-4xl font-black text-navy dark:text-white">
-          اختر الباقة المناسبة لمستوى شغلك
-        </h2>
-        <p className="text-gray-500 mb-12">
-          حالتك الحالية مفعلة على باقة:{" "}
-          <strong className="text-primary uppercase">{currentTier}</strong>
-        </p>
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="text-center space-y-3">
+          <h2 className="text-3xl md:text-4xl font-black text-navy dark:text-white">
+            اختر الباقة المناسبة لمستوى شغلك
+          </h2>
+          <p className="text-gray-500">
+            حالتك الحالية مفعلة على باقة:{" "}
+            <strong className="text-primary uppercase">{currentTier}</strong>
+          </p>
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* بانر تنبيهي فخم لو في طلب معلق قيد المراجعة */}
+        {subStatus === "pending" && requestedTier && (
+          <div className="bg-amber-500/10 border-2 border-amber-500/30 rounded-3xl p-5 flex items-center gap-4 text-amber-500 max-w-xl mx-auto shadow-lg">
+            <AlertCircle className="w-8 h-8 flex-shrink-0" />
+            <div className="text-xs space-y-1">
+              <p className="font-black text-sm">
+                طلب اشتراكك في باقة ({requestedTier.toUpperCase()}) قيد المراجعة
+                ⏳
+              </p>
+              <p className="text-gray-400">
+                لقد قمت برفع إيصال الدفع بنجاح. سيتم مراجعته وتفعيل المميزات
+                قريباً بواسطة الإدارة.
+              </p>
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-6">
           {plans.map((plan) => {
             const planWeight = tierWeights[plan.rawName];
-            const isCurrent = planWeight === userWeight;
-            const isLower = planWeight < userWeight;
+            const isCurrent =
+              planWeight === userWeight && subStatus === "active";
+            const isLower = planWeight < userWeight && subStatus === "active";
 
             return (
               <div
@@ -129,7 +172,10 @@ function UpgradePage() {
                   <div className="text-4xl font-black text-navy dark:text-white mb-1">
                     {plan.price}
                   </div>
-                  <p className="text-sm text-gray-400 mb-6">{plan.period}</p>
+                  <p className="text-sm text-gray-400 mb-3">{plan.period}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
+                    {plan.description}
+                  </p>
 
                   <ul className="space-y-4 mb-8 text-right">
                     {plan.features.map((feat, i) => (
@@ -159,7 +205,9 @@ function UpgradePage() {
                     ? "غير متاح (تمتلك باقة أعلى)"
                     : isCurrent
                       ? "عرض تفاصيل اشتراكي 📋"
-                      : "ترقية الباقة الآن 🚀"}
+                      : subStatus === "pending"
+                        ? "تعديل طلب الاشتراك 🔄"
+                        : "ترقية الباقة الآن 🚀"}
                 </button>
               </div>
             );

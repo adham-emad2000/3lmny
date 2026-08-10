@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Nav from "./Componants/Nav";
 import Hero from "./Componants/Hero";
+import TeacherPricingCTA from "./Componants/TeacherPricingCTA"; // سيكشن ترويجي للباقات للمعلمين
 import ProTeacher from "./Componants/ProTeacher"; // سيكشن المعلمين المميزين في الهوم
 import HowItWorks from "./Componants/PlatformFeatures";
 import FAQ from "./Componants/FAQ";
@@ -21,6 +22,7 @@ function Home() {
   return (
     <>
       <Hero />
+      <TeacherPricingCTA /> {/* سيكشن الباقات يظهر بعد الهيرو مباشرة */}
       <ProTeacher />
       <HowItWorks />
       <FAQ />

@@ -43,31 +43,54 @@ function Subscribe() {
   const [loading, setLoading] = useState(false);
 
   const userData = JSON.parse(localStorage.getItem("elemny_user_data") || "{}");
+  const userId = userData.uid;
 
-  // تفعيل البرومو كود (uwk100 أو uwk200)
+  // 1. تفعيل البرومو كود الفوري مع التحقق من توافقه مع الباقة الحالية
   const handleApplyPromo = async (e) => {
     e.preventDefault();
-    const code = promoCode.trim().toLowerCase();
+    setPromoMessage("");
 
+    if (!userId) {
+      alert("خطأ: يرجى تسجيل الدخول مرة أخرى.");
+      return;
+    }
+
+    const code = promoCode.trim().toLowerCase();
+    const currentPlanLower = planName.toLowerCase(); // الباقة اللي اليوزر واقف فيها حاليا (Standard أو Pro)
     let targetTier = "";
+
+    // تحديد الباقة المستهدفة بناءً على الكود المدخل
     if (code === "uwk100") targetTier = "standard";
     if (code === "uwk200") targetTier = "pro";
 
+    // 🛡️ شرط الحماية: التأكد أن الكود يوافق الباقة الحالية التي يحاول الاشتراك بها
     if (targetTier) {
+      if (targetTier !== currentPlanLower) {
+        setPromoMessage(`❌ غير صحيح هذا الكود`);
+        return;
+      }
+
       setLoading(true);
       try {
-        const userRef = doc(db, "users", userData.uid);
-        const updatedSubscription = {
-          tier: targetTier,
-          status: "active",
-          startDate: new Date().toISOString(),
-          expiryDate: new Date(
+        const userRef = doc(db, "users", userId);
+        await updateDoc(userRef, {
+          "subscription.tier": targetTier,
+          "subscription.status": "active",
+          "subscription.requestStatus": "approved",
+          "subscription.promoUsed": code,
+          "subscription.startDate": new Date().toISOString(),
+          "subscription.expiryDate": new Date(
             Date.now() + 365 * 24 * 60 * 60 * 1000,
           ).toISOString(),
-        };
+        });
 
-        await updateDoc(userRef, { subscription: updatedSubscription });
-        userData.subscription = updatedSubscription;
+        userData.subscription = {
+          ...userData.subscription,
+          tier: targetTier,
+          status: "active",
+          requestStatus: "approved",
+          promoUsed: code,
+        };
         localStorage.setItem("elemny_user_data", JSON.stringify(userData));
 
         alert(
@@ -75,7 +98,7 @@ function Subscribe() {
         );
         navigate("/", { replace: true });
       } catch (error) {
-        console.error(error);
+        console.error("Promo Error:", error);
         alert("حدث خطأ أثناء تفعيل البرومو.");
       } finally {
         setLoading(false);
@@ -85,11 +108,15 @@ function Subscribe() {
     }
   };
 
-  // رفع الإيصال اليدوي (Pending)
+  // 2. رفع الإيصال اليدوي (طلب معلق للأدمن)
   const handleManualPayment = async (e) => {
     e.preventDefault();
     if (!screenshot) {
       alert("يرجى إرفاق صورة إيصال التحويل أولاً.");
+      return;
+    }
+    if (!userId) {
+      alert("خطأ: يرجى تسجيل الدخول مرة أخرى.");
       return;
     }
 
@@ -99,26 +126,32 @@ function Subscribe() {
       reader.readAsDataURL(screenshot);
       reader.onload = async () => {
         const base64Image = reader.result;
-        const userRef = doc(db, "users", userData.uid);
+        const userRef = doc(db, "users", userId);
 
-        const updatedSubscription = {
-          tier: planName.toLowerCase(),
-          status: "pending", // قيد المراجعة حتى يوافق الأدمن
+        await updateDoc(userRef, {
+          "subscription.requestedTier": planName.toLowerCase(),
+          "subscription.status": "pending",
+          "subscription.requestStatus": "pending",
+          "subscription.paymentReceipt": base64Image,
+          "subscription.requestedAt": new Date().toISOString(),
+        });
+
+        userData.subscription = {
+          ...userData.subscription,
+          requestedTier: planName.toLowerCase(),
+          status: "pending",
+          requestStatus: "pending",
           paymentReceipt: base64Image,
-          requestedAt: new Date().toISOString(),
         };
-
-        await updateDoc(userRef, { subscription: updatedSubscription });
-        userData.subscription = updatedSubscription;
         localStorage.setItem("elemny_user_data", JSON.stringify(userData));
 
         alert(
-          "✅ تم إرسال إيصال الدفع بنجاح! سيتم مراجعته وتفعيل حسابك قريباً.",
+          "✅ تم إرسال الإيصال بنجاح! حسابك سيبقى 'فري' لحين مراجعة الإدارة وتفعيل الباقة.",
         );
         navigate("/", { replace: true });
       };
     } catch (error) {
-      console.error(error);
+      console.error("Payment Error:", error);
       alert("حدث خطأ أثناء رفع الإيصال.");
     } finally {
       setLoading(false);
@@ -168,7 +201,7 @@ function Subscribe() {
           <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-800">
             <button
               onClick={prevSlide}
-              className="bg-gray-800 hover:bg-gray-700 p-2.5 rounded-xl text-white font-bold flex items-center gap-1 text-xs"
+              className="bg-gray-800 hover:bg-gray-700 p-2.5 rounded-xl text-white font-bold flex items-center gap-1 text-xs cursor-pointer"
             >
               <ChevronRight className="w-4 h-4" /> السابق
             </button>
@@ -182,14 +215,14 @@ function Subscribe() {
             </div>
             <button
               onClick={nextSlide}
-              className="bg-gray-800 hover:bg-gray-700 p-2.5 rounded-xl text-white font-bold flex items-center gap-1 text-xs"
+              className="bg-gray-800 hover:bg-gray-700 p-2.5 rounded-xl text-white font-bold flex items-center gap-1 text-xs cursor-pointer"
             >
               التالي <ChevronLeft className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        {/* Promo Code */}
+        {/* Promo Code - تم إخفاء الأكواد من الـ Placeholder تماماً لأمان السيستم */}
         <div className="bg-gray-900 border border-gray-800 rounded-3xl p-6 md:p-8 space-y-4 shadow-xl">
           <h3 className="text-lg font-extrabold flex items-center gap-2">
             <Zap className="w-5 h-5 text-amber-400" /> برومو كود التفعيل الفوري
@@ -197,7 +230,7 @@ function Subscribe() {
           <form onSubmit={handleApplyPromo} className="flex gap-3">
             <input
               type="text"
-              placeholder="اكتب الكود (uwk100 أو uwk200)"
+              placeholder="أدخل برومو كود التفعيل..."
               value={promoCode}
               onChange={(e) => setPromoCode(e.target.value)}
               className="flex-1 bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white focus:border-primary outline-none"
@@ -205,7 +238,7 @@ function Subscribe() {
             <button
               type="submit"
               disabled={loading}
-              className="bg-primary hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl text-xs transition-all"
+              className="bg-primary hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl text-xs transition-all cursor-pointer"
             >
               تفعيل فوري 🚀
             </button>
@@ -240,7 +273,7 @@ function Subscribe() {
           <form onSubmit={handleManualPayment} className="space-y-4 pt-2">
             <div>
               <label className="block text-xs font-bold text-gray-300 mb-2">
-                ارفع اسكرين شوت إيصال التحويل:
+                اررفع اسكرين شوت إيصال التحويل:
               </label>
               <input
                 type="file"
@@ -252,7 +285,7 @@ function Subscribe() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl text-sm transition-all shadow-lg"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 rounded-xl text-sm transition-all shadow-lg cursor-pointer"
             >
               {loading ? "جاري الإرسال..." : "إرسال الإيصال للأدمن للمراجعة ✅"}
             </button>

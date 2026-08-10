@@ -18,13 +18,14 @@ function ProTeacher() {
           ...doc.data(),
         }));
 
-        // تصفية المعلمين المشتركين في باقة PRO حصرياً
+        // تصفية المعلمين المشتركين في باقة PRO حصرياً بشرط أن تكون الحالة نشطة (active)
         const filtered = teachersList.filter(
           (t) =>
             t.role === "teacher" &&
             t.subscription &&
             t.subscription.tier &&
-            t.subscription.tier.toLowerCase() === "pro",
+            t.subscription.tier.toLowerCase() === "pro" &&
+            t.subscription.status === "active", // 👈 الشرط الحاسم: منع ظهور المعلق (pending)
         );
 
         setProTeachers(filtered);
@@ -52,7 +53,7 @@ function ProTeacher() {
     );
   }
 
-  // لو مفيش مدرسين برو حالياً، السيكشن مش هيظهر عشان الهوم يفضل منظم
+  // لو مفيش مدرسين برو مفعلين حالياً، السيكشن مش هيظهر عشان الهوم يفضل منظم
   if (proTeachers.length === 0) {
     return null;
   }
@@ -64,15 +65,11 @@ function ProTeacher() {
     >
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="text-center space-y-2">
-          <span className="text-xs font-bold text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/50 px-3.5 py-1.5 rounded-full border border-purple-200 dark:border-purple-900">
-            👑 نخبة المعلمين (باقة Pro)
-          </span>
-          <h2 className="text-2xl lg:text-3xl font-black text-navy dark:text-white">
-            المعلمون المميزون أصحاب باقة Pro
+          <h2 className="text-2xl lg:text-3xl  font-black text-navy dark:text-white">
+            اقتراحات افضل المدرسين
           </h2>
           <p className="text-gray-500 text-xs">
-            اختر من أفضل المعلمين المعتمدين ذوي الأولوية القصوى والرد السريع في
-            منصة علمني.
+            اختر من أفضل المعلمين المعتمدين في منصة علمني.
           </p>
         </div>
 
@@ -104,7 +101,7 @@ function ProTeacher() {
                       أ. {teacher.name}
                     </h3>
                     <span className="text-[10px] bg-purple-600 text-white px-2.5 py-0.5 rounded-full font-bold shadow-sm">
-                      PRO 👑
+                      متميز ومقترح
                     </span>
                   </div>
                   <p className="text-xs text-purple-600 dark:text-purple-400 font-semibold mt-0.5">
