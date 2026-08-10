@@ -1,11 +1,9 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext"; // 👈 استدعاء الهوك
 
 function Hero() {
-  const [userData] = useState(() => {
-    const saved = localStorage.getItem("elemny_user_data");
-    return saved ? JSON.parse(saved) : null;
-  });
+  const { userData } = useAuth(); // 👈 جيبنا داتا اليوزر المركزية فوراً
 
   const isTeacher = userData?.role === "teacher";
   const isStudent = userData?.role === "student";
@@ -27,9 +25,9 @@ function Hero() {
 
           <h1 className="text-4xl lg:text-5xl font-extrabold text-navy dark:text-white leading-tight">
             {isTeacher
-              ? `أهلاً بك يا أستاذ ${userData.name}.. استقبل طلبات الطلاب حولك الآن!`
+              ? `أهلاً بك يا أستاذ ${userData?.name}.. استقبل طلبات الطلاب حولك الآن!`
               : isStudent
-                ? `أهلاً بك يا ${userData.name}.. اطلب الحصه التي تريدها وحدد سعرها بنفسك!`
+                ? `أهلاً بك يا ${userData?.name}.. اطلب الحصه التي تريدها وحدد سعرها بنفسك!`
                 : 'منصة "علمني".. حط سعرك، تفاوض مع المدرس، !'}
           </h1>
 
@@ -38,15 +36,15 @@ function Hero() {
               <span>
                 لوحة التحكم اللحظية مفتوحة أمامك لاستقبال طلبات الطلاب في محافظة{" "}
                 <strong className="text-navy dark:text-white">
-                  {userData.governorate}
+                  {userData?.governorate}
                 </strong>{" "}
                 - منطقة{" "}
                 <strong className="text-navy dark:text-white">
-                  {userData.area}
+                  {userData?.area}
                 </strong>{" "}
                 لمادة{" "}
                 <strong className="text-navy dark:text-white">
-                  {userData.subject}
+                  {userData?.subject}
                 </strong>
                 . وافق أو تفاوض على السعر فوراً!
               </span>
@@ -65,18 +63,15 @@ function Hero() {
             )}
           </p>
 
-          <div className="flex flex-wrap gap-2 pt-1">
-            <span className="bg-blue-50 dark:bg-blue-950/60 text-primary text-xs font-bold px-3.5 py-1.5 rounded-xl border border-blue-100 dark:border-blue-900">
-              طلبات لايف
-            </span>
-            <span className="bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 text-xs font-bold px-3.5 py-1.5 rounded-xl border border-purple-100 dark:border-purple-900">
-              تفاوض مرن على السعر
-            </span>
-          </div>
-
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
-            {/* أزرار الطالب والزائر */}
-            {!isTeacher && (
+            {isTeacher ? (
+              <Link
+                to="/teacher-live"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 py-4 rounded-xl shadow-lg shadow-emerald-500/25 transition-all duration-300 hover:-translate-y-1 text-center flex items-center justify-center gap-2"
+              >
+                <span>استقبل الطلبات حالا 🟢</span>
+              </Link>
+            ) : (
               <>
                 <Link
                   to="/student-request"
@@ -92,20 +87,10 @@ function Hero() {
                 </Link>
               </>
             )}
-
-            {/* زر المدرس */}
-            {isTeacher && (
-              <Link
-                to="/teacher-live"
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 py-4 rounded-xl shadow-lg shadow-emerald-500/25 transition-all duration-300 hover:-translate-y-1 text-center flex items-center justify-center gap-2"
-              >
-                <span>استقبل الطلبات حالا 🟢</span>
-              </Link>
-            )}
           </div>
         </div>
 
-        {/* الجانب الأيسر (الكارت التوضيحي) */}
+        {/* الكارت التوضيحي */}
         <div className="relative flex justify-center">
           <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md p-8 rounded-3xl shadow-2xl shadow-indigo-900/10 border-2 border-purple-400/50 dark:border-purple-600/40 max-w-md w-full relative overflow-hidden">
             <div className="absolute top-0 right-0 w-3 h-full bg-gradient-to-b from-primary via-purple-500 to-emerald-400"></div>
@@ -132,7 +117,7 @@ function Hero() {
                     الطالب:
                   </h4>
                   <p className="text-gray-600 dark:text-gray-300 text-xs mt-0.5">
-                    يحدد المادة والوقت والسعر ب ، وينتظر عروض المدرسين.
+                    يحدد المادة والوقت والسعر، وينتظر عروض المدرسين.
                   </p>
                 </div>
               </div>

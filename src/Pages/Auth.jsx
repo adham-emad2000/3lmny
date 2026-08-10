@@ -6,6 +6,7 @@ import {
   signInWithEmailAndPassword,
   onAuthStateChanged,
   signOut,
+  sendPasswordResetEmail,
 } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 
@@ -19,10 +20,11 @@ function Auth() {
   const [showPassword, setShowPassword] = useState(false);
 
   const isCreatingAccount = useRef(false);
+  const isSigningIn = useRef(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user && !isCreatingAccount.current) {
+      if (user && !isCreatingAccount.current && !isSigningIn.current) {
         navigate("/", { replace: true });
       }
     });
@@ -174,6 +176,34 @@ function Auth() {
     });
   };
 
+  // دالة نسيت كلمة المرور
+  const handleForgotPassword = async () => {
+    if (!formData.email) {
+      setErrorMessage("يرجى إدخال البريد الإلكتروني في حقل الإيميل أولاً.");
+      return;
+    }
+    try {
+      setLoading(true);
+      setErrorMessage("");
+      setSuccessMessage("");
+
+      await sendPasswordResetEmail(auth, formData.email);
+
+      setSuccessMessage(
+        "تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.",
+      );
+    } catch (error) {
+      console.error(error);
+      if (error.code === "auth/user-not-found") {
+        setErrorMessage("البريد الإلكتروني غير مسجل لدينا.");
+      } else {
+        setErrorMessage("حدث خطأ، تأكد من صحة البريد الإلكتروني.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -222,6 +252,8 @@ function Auth() {
 
     try {
       if (isLogin) {
+        isSigningIn.current = true;
+
         const userCredential = await signInWithEmailAndPassword(
           auth,
           formData.email,
@@ -279,7 +311,6 @@ function Auth() {
           teachingType: role === "teacher" ? formData.teachingType : "",
           price: role === "teacher" ? finalPrice : "",
           avatarUrl: avatarUrl,
-          // 🚀 الحقل الجديد الخاص بنظام الباقات للمدرسين (افتراضياً free)
           subscription: {
             tier: "free",
             expiryDate: null,
@@ -318,6 +349,7 @@ function Auth() {
       }
     } finally {
       setLoading(false);
+      isSigningIn.current = false;
     }
   };
 
@@ -352,24 +384,26 @@ function Auth() {
 
         <div className="bg-gray-100 dark:bg-gray-800 p-1.5 rounded-2xl flex gap-2">
           <button
+            type="button"
             onClick={() => {
               setIsLogin(true);
               setErrorMessage("");
               setSuccessMessage("");
             }}
-            className={`w-1/2 py-2.5 rounded-xl font-bold text-xs transition-all ${
+            className={`w-1/2 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
               isLogin ? "bg-white text-navy shadow-sm" : "text-gray-500"
             }`}
           >
             تسجيل الدخول
           </button>
           <button
+            type="button"
             onClick={() => {
               setIsLogin(false);
               setErrorMessage("");
               setSuccessMessage("");
             }}
-            className={`w-1/2 py-2.5 rounded-xl font-bold text-xs transition-all ${
+            className={`w-1/2 py-2.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
               !isLogin ? "bg-white text-navy shadow-sm" : "text-gray-500"
             }`}
           >
@@ -382,7 +416,7 @@ function Auth() {
             <button
               type="button"
               onClick={() => setRole("student")}
-              className={`py-3 rounded-xl font-bold text-xs border transition-all ${
+              className={`py-3 rounded-xl font-bold text-xs border transition-all cursor-pointer ${
                 role === "student"
                   ? "bg-primary text-white border-primary shadow-sm"
                   : "bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700"
@@ -393,7 +427,7 @@ function Auth() {
             <button
               type="button"
               onClick={() => setRole("teacher")}
-              className={`py-3 rounded-xl font-bold text-xs border transition-all ${
+              className={`py-3 rounded-xl font-bold text-xs border transition-all cursor-pointer ${
                 role === "teacher"
                   ? "bg-primary text-white border-primary shadow-sm"
                   : "bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-700"
@@ -507,17 +541,28 @@ function Auth() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 focus:outline-none"
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 focus:outline-none cursor-pointer"
               >
                 {showPassword ? "👁️‍🗨️" : "👁️"}
               </button>
             </div>
+            {/* زرار نسيت كلمة المرور */}
+            {isLogin && (
+              <div className="text-left mt-1.5">
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-xs text-primary hover:underline cursor-pointer font-medium"
+                >
+                  نسيت كلمة المرور؟
+                </button>
+              </div>
+            )}
           </div>
 
           {/* حقول المعلم الإضافية */}
           {!isLogin && role === "teacher" && (
             <>
-              {/* المحافظة */}
               <div>
                 <label className="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">
                   المحافظة
@@ -536,7 +581,6 @@ function Auth() {
                 </select>
               </div>
 
-              {/* المنطقة */}
               <div>
                 <label className="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">
                   المنطقة أو الحي
@@ -557,7 +601,6 @@ function Auth() {
                 </select>
               </div>
 
-              {/* المادة الدراسية */}
               <div>
                 <label className="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">
                   المادة الدراسية
@@ -595,7 +638,6 @@ function Auth() {
                 </select>
               </div>
 
-              {/* الصفوف الدراسية (متعددة) */}
               <div>
                 <label className="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-2">
                   الصفوف الدراسية التي تقوم بشرحها (يمكن اختيار أكثر من صف):
@@ -636,7 +678,7 @@ function Auth() {
                               type="checkbox"
                               checked={selectedGrades.includes(grade)}
                               onChange={() => handleGradeToggle(grade)}
-                              className="w-4 h-4 rounded text-primary focus:ring-primary accent-primary"
+                              className="w-4 h-4 rounded text-primary focus:ring-primary accent-primary cursor-pointer"
                             />
                             {grade}
                           </label>
@@ -647,7 +689,6 @@ function Auth() {
                 </div>
               </div>
 
-              {/* رقم الواتساب */}
               <div>
                 <label className="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">
                   رقم الواتساب للتواصل
@@ -667,7 +708,6 @@ function Auth() {
                 </p>
               </div>
 
-              {/* وسيلة التدريس */}
               <div>
                 <label className="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">
                   نوع وسيلة التدريس المتاحة
@@ -684,7 +724,6 @@ function Auth() {
                 </select>
               </div>
 
-              {/* سعر الحصة */}
               <div>
                 <label className="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">
                   نظام وسعر الحصة
@@ -722,7 +761,7 @@ function Auth() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary hover:bg-blue-700 flex items-center justify-center text-white font-bold py-3.5 rounded-xl text-sm transition-all disabled:opacity-50"
+            className="w-full bg-primary hover:bg-blue-700 flex items-center justify-center text-white font-bold py-3.5 rounded-xl text-sm transition-all disabled:opacity-50 cursor-pointer"
           >
             {loading ? (
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

@@ -35,6 +35,20 @@ function TeacherLive() {
   const teacherTier = userData?.subscription?.tier || "free";
   const isFree = teacherTier === "free";
 
+  // دالة تنسيق رقم الواتساب بالصيغة المظبوطة بالـ +
+  const getWhatsAppUrl = (phone, studentName, subject, lessonTime) => {
+    if (!phone) return "#";
+    let cleaned = phone.replace(/\D/g, "");
+    if (cleaned.startsWith("0")) {
+      cleaned = "20" + cleaned.slice(1);
+    } else if (!cleaned.startsWith("20")) {
+      cleaned = "20" + cleaned;
+    }
+    return `https://api.whatsapp.com/send?phone=+${cleaned}&text=${encodeURIComponent(
+      `أهلاً يا ${studentName}، معك أستاذ ${userData?.name} وموافق على حصة ${subject} في ميعاد (${lessonTime}).`,
+    )}`;
+  };
+
   // دالة تشغيل صوت التنبيه
   const playNotificationSound = () => {
     try {
@@ -174,7 +188,7 @@ function TeacherLive() {
             {isFree && (
               <button
                 onClick={() => navigate("/upgrade")}
-                className="bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90 text-white px-4 py-2 rounded-2xl text-xs font-bold shadow-md transition-all"
+                className="bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90 text-white px-4 py-2 rounded-2xl text-xs font-bold shadow-md transition-all cursor-pointer"
               >
                 ✨ ترقية الحساب (فتح التفاوض)
               </button>
@@ -246,18 +260,21 @@ function TeacherLive() {
 
                   <div className="pt-2 flex gap-3">
                     <a
-                      href={`https://wa.me/${lesson.studentPhone}?text=${encodeURIComponent(
-                        `أهلاً يا ${lesson.studentName}، معك أستاذ ${userData.name} وموافق على حصة ${lesson.subject} في ميعاد (${lesson.lessonTime}).`,
-                      )}`}
+                      href={getWhatsAppUrl(
+                        lesson.studentPhone,
+                        lesson.studentName,
+                        lesson.subject,
+                        lesson.lessonTime,
+                      )}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-xs text-center transition-all shadow-sm flex items-center justify-center gap-2"
+                      className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-xs text-center transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <span>واتساب: {lesson.studentPhone} 💬</span>
                     </a>
                     <button
                       onClick={() => handleFinishLesson(lesson.id)}
-                      className="bg-gray-200 hover:bg-red-500 hover:text-white text-gray-700 dark:bg-gray-800 dark:text-gray-300 font-bold px-4 py-3 rounded-xl text-xs transition-all"
+                      className="bg-gray-200 hover:bg-red-500 hover:text-white text-gray-700 dark:bg-gray-800 dark:text-gray-300 font-bold px-4 py-3 rounded-xl text-xs transition-all cursor-pointer"
                     >
                       إنهاء الحصة ✅
                     </button>
@@ -335,7 +352,7 @@ function TeacherLive() {
                         </p>
                         <button
                           onClick={() => navigate("/upgrade")}
-                          className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 rounded-xl text-xs transition-all shadow-sm"
+                          className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 rounded-xl text-xs transition-all shadow-sm cursor-pointer"
                         >
                           رقّي باقتك لتتمكن من التفاوض 🚀
                         </button>
@@ -356,7 +373,7 @@ function TeacherLive() {
                         />
                         <button
                           onClick={() => handleSendCounterOffer(req.id)}
-                          className="bg-purple-600 hover:bg-purple-700 text-white font-bold px-3 py-2 rounded-xl text-xs whitespace-nowrap"
+                          className="bg-purple-600 hover:bg-purple-700 text-white font-bold px-3 py-2 rounded-xl text-xs whitespace-nowrap cursor-pointer"
                         >
                           إرسال عرض 💬
                         </button>
@@ -367,7 +384,7 @@ function TeacherLive() {
                   <div className="pt-1 flex gap-3">
                     <button
                       onClick={() => handleAcceptRequest(req.id, req.price)}
-                      className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-xs transition-all shadow-sm flex items-center justify-center gap-2"
+                      className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-xs transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <span>قبول بالسعر الحالي ({req.price} ج.م) 🟢</span>
                     </button>
@@ -392,7 +409,7 @@ function TeacherLive() {
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="px-4 py-2 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-xs font-bold disabled:opacity-50"
+                className="px-4 py-2 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-xs font-bold disabled:opacity-50 cursor-pointer"
               >
                 السابق
               </button>
@@ -404,7 +421,7 @@ function TeacherLive() {
                   setCurrentPage((p) => Math.min(totalPages, p + 1))
                 }
                 disabled={currentPage === totalPages}
-                className="px-4 py-2 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-xs font-bold disabled:opacity-50"
+                className="px-4 py-2 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-xs font-bold disabled:opacity-50 cursor-pointer"
               >
                 التالي
               </button>

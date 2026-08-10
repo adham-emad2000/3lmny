@@ -64,7 +64,7 @@ function TeachersSearch() {
     }
   };
 
-  // تنسيق رقم الواتساب وإضافة كود مصر تلقائياً
+  // دالة الواتساب المضبوطة بالتكنيك الجديد والـ +
   const getWhatsAppUrl = (phone, name) => {
     if (!phone) return "#";
     let cleaned = phone.replace(/\D/g, "");
@@ -73,7 +73,7 @@ function TeachersSearch() {
     } else if (!cleaned.startsWith("20")) {
       cleaned = "20" + cleaned;
     }
-    return `https://wa.me/${cleaned}?text=${encodeURIComponent(
+    return `https://api.whatsapp.com/send?phone=+${cleaned}&text=${encodeURIComponent(
       `ازيك يا ${name}، أنا شفت بروفايلك على منصة "علمني" وحابب أتفق معاك على درس.`,
     )}`;
   };
@@ -303,12 +303,12 @@ function TeachersSearch() {
                             {teacher.name}
                           </h3>
                           {subStatus && subTier === "pro" && (
-                            <span className="text-[13px] bg-purple-600 text-white px-2.5 py-0.5 rounded-full font-bold shadow-sm">
+                            <span className="text-[10px] bg-purple-600 text-white px-2.5 py-0.5 rounded-full font-bold shadow-sm">
                               مميز ومقترح
                             </span>
                           )}
                           {subStatus && subTier === "standard" && (
-                            <span className="text-[13px] bg-amber-500 text-white px-2.5 py-0.5 rounded-full font-bold shadow-sm">
+                            <span className="text-[10px] bg-amber-500 text-white px-2.5 py-0.5 rounded-full font-bold shadow-sm">
                               مميز ومقترح
                             </span>
                           )}
@@ -378,7 +378,6 @@ function TeachersSearch() {
                       </span>
                     </div>
 
-                    {/* تقييم 5 نجوم يظهر للبرو فقط */}
                     {subStatus && subTier === "pro" && (
                       <div className="flex justify-between items-center bg-purple-50/50 dark:bg-purple-950/30 p-2.5 rounded-xl border border-purple-100 dark:border-purple-900/50">
                         <span className="text-purple-700 dark:text-purple-300 font-bold">

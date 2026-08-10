@@ -14,7 +14,7 @@ function FAQ() {
     {
       question: "هل التسجيل على المنصة مجاني؟",
       answer:
-        "أيوة طبعاً، التسجيل وعمل الحساب مجاني تماماً للطلاب والمعلمين من غير أي رسوم مخفية.",
+        "التسجيل وعمل الحساب مجاني تماماً للطلاب وللمعلمين عبر باقة (Free) الأساسية. وعندك الاختيار دايماً للترقية لباقات (Standard) أو (Pro) لو حبيت تستفيد بمميزات إضافية وأدوات احترافية للظهور بشكل أكبر.",
     },
     {
       question: "إزاي السيستم بيلاقي لي مدرس قريب مني؟",
@@ -27,14 +27,24 @@ function FAQ() {
         "الموضوع راجع لاتفاقكم؛ ممكن تظبطوا حصة أونلاين مباشرة، أو درس حضوري في المكان اللي يناسبكم انتوا الاتنين.",
     },
     {
-      question: "أنا مدرس.. إزاي أضمن طريقتي وشغلي؟",
+      question: "أنا مدرس.. إزاي أتحكم في شغلي؟",
       answer:
-        "ليك حرية الاختيار ترحّب أو ترفض أي طلب حسب مواعيدك وسعرك، ومعاك لوحة تحكم تظبط بيها مواعيدك وحصصك بكل راحة.",
+        "أنت مدير نفسك.. ترحّب أو ترفض أي طلب حسب مواعيدك وسعرك، ومعاك لوحة تحكم تظبط بيها كل حاجة. ولو حبيت تتميز أكتر، باقات (Standard) و (Pro) بتفتح لك أدوات إضافية زي التفاوض والشارات المميزة.",
     },
     {
       question: "ينفع أغير المدرس لو حسيت إني مش مرتاح؟",
       answer:
         "أكيد عادي جداً، تقدر في أي وقت تلغي الطلب وتشوف مدرس تاني من حسابك من غير أي إحراج ولا تعقيد.",
+    },
+    {
+      question: "إزاي أحصل على شارة 'مميز ومقترح'؟",
+      answer:
+        "الشارة دي بتظهر تلقائياً على بروفايلك بمجرد اشتراكك في باقة (Standard) أو (Pro). الشارة دي مصممة عشان تزود ثقة الطلاب فيك وتخليك في صدارة نتائج البحث.",
+    },
+    {
+      question: "ماذا أفعل لو غير راضٍ عن مستوى الحصة؟",
+      answer:
+        "هدفنا إنك تحصل على أفضل تجربة تعليمية. لو واجهت أي مشكلة أو مكنتش راضي عن الحصة، تواصل فوراً مع فريق الدعم الفني عبر الواتساب على رقم: 01014441277، متاحين لخدمتك ومتابعة مشكلتك 24 ساعة.",
     },
   ];
 
@@ -58,7 +68,6 @@ function FAQ() {
       className="py-24 bg-[#F8F9FA] dark:bg-gray-950 relative overflow-hidden transition-colors duration-300"
     >
       <div className="max-w-4xl mx-auto px-6 relative z-10">
-        {/* عنوان السيكشن */}
         <div className="text-center mb-16 space-y-4">
           <span className="bg-white dark:bg-gray-900 text-navy dark:text-white text-sm font-bold px-4 py-1.5 rounded-full border border-gray-200 dark:border-gray-800 shadow-xs inline-block">
             💡 الأسئلة المتكررة
@@ -71,13 +80,15 @@ function FAQ() {
           </p>
         </div>
 
-        {/* قائمة الأسئلة */}
         <div className="space-y-4 mb-10">
           {currentFaqs.map((faq, index) => {
             const isOpen = openIndex === index;
+            // عشان الأندكس يفضل مظبوط مع الباجينشن
+            const globalIndex = indexOfFirstItem + index;
+
             return (
               <div
-                key={index}
+                key={globalIndex}
                 className={`rounded-3xl border transition-all duration-300 shadow-xs overflow-hidden ${
                   isOpen
                     ? "bg-blue-50/40 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900 shadow-md scale-[1.01]"
@@ -93,7 +104,11 @@ function FAQ() {
                   </span>
 
                   <span
-                    className={`w-9 h-9 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center font-bold text-navy dark:text-white transition-transform duration-300 shrink-0 shadow-2xs ${isOpen ? "rotate-180 bg-navy dark:bg-primary text-white border-navy dark:border-primary" : ""}`}
+                    className={`w-9 h-9 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center font-bold text-navy dark:text-white transition-transform duration-300 shrink-0 shadow-2xs ${
+                      isOpen
+                        ? "rotate-180 bg-navy dark:bg-primary text-white border-navy dark:border-primary"
+                        : ""
+                    }`}
                   >
                     ↓
                   </span>
@@ -111,7 +126,6 @@ function FAQ() {
           })}
         </div>
 
-        {/* أزرار التنقل (Pagination) */}
         {totalPages > 1 && (
           <div className="flex justify-center items-center gap-2">
             {Array.from({ length: totalPages }, (_, i) => i + 1).map(

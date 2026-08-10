@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { db } from "../firebase";
 import {
   collection,
@@ -13,6 +14,7 @@ import {
 } from "firebase/firestore";
 
 function StudentRequest() {
+  const navigate = useNavigate();
   const [userData] = useState(() => {
     const saved = localStorage.getItem("elemny_user_data");
     return saved ? JSON.parse(saved) : null;
@@ -34,6 +36,20 @@ function StudentRequest() {
   const [activeRequest, setActiveRequest] = useState(null);
   const [loading, setLoading] = useState(false);
   const [timeLeft, setTimeLeft] = useState(300); // 5 دقائق (300 ثانية)
+
+  // دالة تنسيق رقم الواتساب بالصيغة المظبوطة بالـ +
+  const getWhatsAppUrl = (phone, teacherName, studentName, lessonTime) => {
+    if (!phone) return "#";
+    let cleaned = phone.replace(/\D/g, "");
+    if (cleaned.startsWith("0")) {
+      cleaned = "20" + cleaned.slice(1);
+    } else if (!cleaned.startsWith("20")) {
+      cleaned = "20" + cleaned;
+    }
+    return `https://api.whatsapp.com/send?phone=+${cleaned}&text=${encodeURIComponent(
+      `أهلاً يا أستاذ ${teacherName}، أنا ${studentName} ووافقت على طلب الحصة في ميعاد (${lessonTime}) على منصة علمني.`,
+    )}`;
+  };
 
   const egyptRegions = {
     القاهرة: [
@@ -232,7 +248,7 @@ function StudentRequest() {
               </div>
               <button
                 onClick={() => handleCancelRequest(activeRequest.id)}
-                className="text-red-500 text-xs font-bold hover:underline"
+                className="text-red-500 text-xs font-bold hover:underline cursor-pointer"
               >
                 إلغاء الطلب ❌
               </button>
@@ -287,13 +303,13 @@ function StudentRequest() {
                         activeRequest.teacherPrice,
                       )
                     }
-                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs text-center shadow-sm"
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs text-center shadow-sm cursor-pointer"
                   >
                     موافقة على السعر الجديد ✅
                   </button>
                   <button
                     onClick={() => handleCancelRequest(activeRequest.id)}
-                    className="bg-gray-200 hover:bg-red-500 hover:text-white text-gray-700 dark:bg-gray-800 dark:text-gray-300 font-bold px-4 py-2.5 rounded-xl text-xs"
+                    className="bg-gray-200 hover:bg-red-500 hover:text-white text-gray-700 dark:bg-gray-800 dark:text-gray-300 font-bold px-4 py-2.5 rounded-xl text-xs cursor-pointer"
                   >
                     رفض ❌
                   </button>
@@ -313,12 +329,15 @@ function StudentRequest() {
 
                 <div className="flex gap-3 pt-2">
                   <a
-                    href={`https://wa.me/${activeRequest.teacherPhone}?text=${encodeURIComponent(
-                      `أهلاً يا أستاذ ${activeRequest.teacherName}، أنا ${activeRequest.studentName} ووافقت على طلب الحصة في ميعاد (${activeRequest.lessonTime}) على منصة علمني.`,
-                    )}`}
+                    href={getWhatsAppUrl(
+                      activeRequest.teacherPhone,
+                      activeRequest.teacherName,
+                      activeRequest.studentName,
+                      activeRequest.lessonTime,
+                    )}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs text-center shadow-sm flex items-center justify-center gap-2"
+                    className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs text-center shadow-sm flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <span>تواصل عبر الواتساب 💬</span>
                   </a>
@@ -492,7 +511,7 @@ function StudentRequest() {
                 <button
                   type="button"
                   onClick={() => setPrice((p) => Math.max(50, p - 10))}
-                  className="w-12 h-12 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xl font-bold text-primary shadow-sm active:scale-95"
+                  className="w-12 h-12 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xl font-bold text-primary shadow-sm active:scale-95 cursor-pointer"
                 >
                   -
                 </button>
@@ -502,7 +521,7 @@ function StudentRequest() {
                 <button
                   type="button"
                   onClick={() => setPrice((p) => p + 10)}
-                  className="w-12 h-12 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xl font-bold text-primary shadow-sm active:scale-95"
+                  className="w-12 h-12 rounded-2xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-xl font-bold text-primary shadow-sm active:scale-95 cursor-pointer"
                 >
                   +
                 </button>
@@ -512,7 +531,7 @@ function StudentRequest() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-primary hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-500/20 transition-all text-sm"
+              className="w-full bg-primary hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-500/20 transition-all text-sm cursor-pointer"
             >
               {loading
                 ? "جاري الإرسال..."

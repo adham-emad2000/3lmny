@@ -8,6 +8,20 @@ function ProTeacher() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 3; // 3 مدرسين جنب بعض في الصفحة
 
+  // دالة تنسيق رقم الواتساب وتظبيطه للرابط الرسمي بالـ +
+  const getWhatsAppUrl = (phone, teacherName) => {
+    if (!phone) return "#";
+    let cleaned = phone.replace(/\D/g, "");
+    if (cleaned.startsWith("0")) {
+      cleaned = "20" + cleaned.slice(1);
+    } else if (!cleaned.startsWith("20")) {
+      cleaned = "20" + cleaned;
+    }
+    return `https://api.whatsapp.com/send?phone=+${cleaned}&text=${encodeURIComponent(
+      `أهلاً يا أستاذ ${teacherName}، وجدتك في قائمة المعلمين المميزين (باقة Pro) على منصة علمني وأرغب في الاستفسار عن حصة.`,
+    )}`;
+  };
+
   useEffect(() => {
     const fetchProTeachers = async () => {
       try {
@@ -130,12 +144,10 @@ function ProTeacher() {
               </div>
 
               <a
-                href={`https://wa.me/${teacher.phone}?text=${encodeURIComponent(
-                  `أهلاً يا أستاذ ${teacher.name}، وجدتك في قائمة المعلمين المميزين (باقة Pro) على منصة علمني وأرغب في الاستفسار عن حصة.`,
-                )}`}
+                href={getWhatsAppUrl(teacher.phone, teacher.name)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs text-center transition-all shadow-sm flex items-center justify-center gap-2"
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs text-center transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>تواصل عبر الواتساب 💬</span>
               </a>
@@ -149,7 +161,7 @@ function ProTeacher() {
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className="px-4 py-2 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-xs font-bold disabled:opacity-50"
+              className="px-4 py-2 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-xs font-bold disabled:opacity-50 cursor-pointer"
             >
               السابق
             </button>
@@ -159,7 +171,7 @@ function ProTeacher() {
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className="px-4 py-2 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-xs font-bold disabled:opacity-50"
+              className="px-4 py-2 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-xs font-bold disabled:opacity-50 cursor-pointer"
             >
               التالي
             </button>
