@@ -1,6 +1,6 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext"; // 👈 استدعاء الكونتكس
+import { AuthProvider } from "./context/AuthContext"; // 👈 استدعاء الكونتكست المركزي
 import Nav from "./Componants/Nav";
 import Hero from "./Componants/Hero";
 import TeacherPricingCTA from "./Componants/TeacherPricingCTA";
@@ -35,8 +35,6 @@ function App() {
   return (
     <Router>
       <AuthProvider>
-        {" "}
-        {/* 👈 مغلفة التطبيق عشان تدي الداتا لأي كومبوننت */}
         <ScrollToTop />
         <div className="min-h-screen bg-offwhite dark:bg-gray-950 text-gray-900 dark:text-gray-100 flex flex-col justify-between transition-colors duration-300">
           <Nav />
