@@ -1,25 +1,67 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { db } from "../firebase";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 
 function TeachersSearch() {
+  const navigate = useNavigate();
+
+  // 🛡️ حماية الصفحة: منع المعلمين من الدخول لصفحة البحث المخصصة للطلاب
+  useEffect(() => {
+    const savedUser = localStorage.getItem("elemny_user_data");
+    if (savedUser) {
+      const userData = JSON.parse(savedUser);
+      if (userData.role === "teacher") {
+        navigate("/", { replace: true });
+      }
+    }
+  }, [navigate]);
+
   // حالات الفلاتر
   const [governorate, setGovernorate] = useState("");
   const [subject, setSubject] = useState("");
-  const [grade, setGrade] = useState("");
   const [area, setArea] = useState("");
   const [searchName, setSearchName] = useState("");
 
-  // حالة المفضلة (بيتم استرجاعها من الـ LocalStorage لو موجودة)
+  const [teachers, setTeachers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // حالة المفضلة
   const [favorites, setFavorites] = useState(() => {
     const savedFavorites = localStorage.getItem("teacherFavorites");
     return savedFavorites ? JSON.parse(savedFavorites) : [];
   });
 
-  // حفظ المفضلة في الـ LocalStorage كل ما تحصل تغييرات
   useEffect(() => {
     localStorage.setItem("teacherFavorites", JSON.stringify(favorites));
   }, [favorites]);
 
-  // دالة تبديل المفضلة (إضافة / إزالة)
+  // 🔥 الاستماع الفوري للتغييرات (حذف، تعديل، إضافة) لحظياً من فايربيز
+  useEffect(() => {
+    setLoading(true);
+    const q = query(collection(db, "users"), where("role", "==", "teacher"));
+
+    const unsubscribe = onSnapshot(
+      q,
+      (querySnapshot) => {
+        const teachersList = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setTeachers(teachersList);
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Error fetching teachers in real-time:", error);
+        setLoading(false);
+      },
+    );
+
+    // تنظيف الاتصال عند مغادرة الصفحة
+    return () => unsubscribe();
+  }, []);
+
+  // دالة تبديل المفضلة
   const toggleFavorite = (id) => {
     if (favorites.includes(id)) {
       setFavorites(favorites.filter((favId) => favId !== id));
@@ -83,97 +125,18 @@ function TeachersSearch() {
     "شمال سيناء": ["العريش", "بئر العبد", "رفح"],
   };
 
-  // داتا تجريبية للمدرسين
-  const teachers = [
-    {
-      id: 1,
-      name: "أ. أحمد محمد",
-      phone: "201012345678",
-      image:
-        "https://ui-avatars.com/api/?name=أحمد+محمد&background=2563EB&color=fff&bold=true",
-      subject: "رياضيات",
-      grades: ["تالتة إعدادي", "أولى ثانوي"],
-      governorate: "القاهرة",
-      area: "مدينة نصر",
-      type: "أونلاين وفي البيت",
-      price: "150 ج / الحصة",
-      rating: 5,
-      status: "🟢 Online ومتاح",
-    },
-    {
-      id: 2,
-      name: "د. محمود إبراهيم",
-      phone: "201098765432",
-      image:
-        "https://ui-avatars.com/api/?name=محمود+إبراهيم&background=7C3AED&color=fff&bold=true",
-      subject: "فيزياء",
-      grades: ["تانية ثانوي", "تالتة ثانوي"],
-      governorate: "القاهرة",
-      area: "مصر الجديدة",
-      type: "حضور في البيت",
-      price: "200 - 300 ج / الحصة",
-      rating: 5,
-      status: "🟢 Online ومتاح",
-    },
-    {
-      id: 3,
-      name: "أ. سارة أحمد",
-      phone: "201122334455",
-      image:
-        "https://ui-avatars.com/api/?name=سارة+أحمد&background=059669&color=fff&bold=true",
-      subject: "لغة إنجليزية",
-      grades: ["أولى ابتدائي", "تانية ابتدائي", "تالتة ابتدائي"],
-      governorate: "الجيزة",
-      area: "الدقي",
-      type: "أونلاين",
-      price: "غير معلن (حسب الاتفاق)",
-      rating: 5,
-      status: "🟢 Online ومتاح",
-    },
-    {
-      id: 4,
-      name: "أ. كريم عبد الله",
-      phone: "201233445566",
-      image:
-        "https://ui-avatars.com/api/?name=كريم+عبدالله&background=D97706&color=fff&bold=true",
-      subject: "كيمياء",
-      grades: ["تالتة ثانوي"],
-      governorate: "القاهرة",
-      area: "المعادي",
-      type: "أونلاين وفي البيت",
-      price: "250 ج / الحصة",
-      rating: 5,
-      status: "🟢 Online ومتاح",
-    },
-    {
-      id: 5,
-      name: "أ. محمد عبد الرازق",
-      phone: "201555667788",
-      image:
-        "https://ui-avatars.com/api/?name=محمد+عبدالرازق&background=0284C7&color=fff&bold=true",
-      subject: "أحياء",
-      grades: ["تانية إعدادي", "تالتة إعدادي"],
-      governorate: "الإسكندرية",
-      area: "سموحة",
-      type: "حضور في البيت",
-      price: "غير معلن (حسب الاتفاق)",
-      rating: 5,
-      status: "🟢 Online ومتاح",
-    },
-  ];
-
   const handleGovernorateChange = (e) => {
     setGovernorate(e.target.value);
     setArea("");
   };
 
+  // تصفية المعلمين بناءً على الفلاتر المدخلة
   const filteredTeachers = teachers.filter((t) => {
     return (
       (governorate === "" || t.governorate === governorate) &&
       (subject === "" || t.subject === subject) &&
-      (grade === "" || t.grades.some((g) => g.includes(grade))) &&
-      (area === "" || t.area === area) &&
-      (searchName === "" || t.name.includes(searchName))
+      (area === "" || (t.area && t.area.includes(area))) &&
+      (searchName === "" || (t.name && t.name.includes(searchName)))
     );
   });
 
@@ -189,13 +152,13 @@ function TeachersSearch() {
             ابحث عن معلمك المفضل 🔍
           </h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm lg:text-base">
-            اختر المحافظة والمادة والصف الدراسي، وأضف معلميك لمفضلتك لتسهيل
-            الوصول إليهم.
+            اختر المحافظة والمادة والمنطقة، وأضف معلميك لمفضلتك لتسهيل الوصول
+            إليهم.
           </p>
         </div>
 
         {/* سكشن الفلاتر */}
-        <div className="bg-white dark:bg-gray-900 p-6 rounded-3xl border border-gray-200/80 dark:border-gray-800 shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="bg-white dark:bg-gray-900 p-6 rounded-3xl border border-gray-200/80 dark:border-gray-800 shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <label className="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">
               بحث بالاسم
@@ -235,7 +198,9 @@ function TeachersSearch() {
               value={area}
               onChange={(e) => setArea(e.target.value)}
               disabled={!governorate}
-              className={`w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm text-navy dark:text-white focus:outline-none focus:border-primary ${!governorate ? "opacity-50 cursor-not-allowed" : ""}`}
+              className={`w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm text-navy dark:text-white focus:outline-none focus:border-primary ${
+                !governorate ? "opacity-50 cursor-not-allowed" : ""
+              }`}
             >
               <option value="">
                 {governorate
@@ -261,62 +226,44 @@ function TeachersSearch() {
               className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm text-navy dark:text-white focus:outline-none focus:border-primary"
             >
               <option value="">كل المواد</option>
-              <optgroup label="المواد الأساسية">
-                <option value="لغة عربية">لغة عربية</option>
-                <option value="لغة إنجليزية">لغة إنجليزية</option>
-                <option value="رياضيات">رياضيات</option>
-                <option value="علوم">علوم</option>
-                <option value="فيزياء">فيزياء</option>
-                <option value="كيمياء">كيمياء</option>
-                <option value="أحياء">أحياء</option>
-              </optgroup>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">
-              الصف الدراسي
-            </label>
-            <select
-              value={grade}
-              onChange={(e) => setGrade(e.target.value)}
-              className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm text-navy dark:text-white focus:outline-none focus:border-primary"
-            >
-              <option value="">كل الصفوف</option>
-              <optgroup label="المرحلة الابتدائية">
-                <option value="أولى ابتدائي">أولى ابتدائي</option>
-                <option value="تانية ابتدائي">تانية ابتدائي</option>
-                <option value="تالتة ابتدائي">تالتة ابتدائي</option>
-              </optgroup>
-              <optgroup label="المرحلة الإعدادية">
-                <option value="أولى إعدادي">أولى إعدادي</option>
-                <option value="تانية إعدادي">تانية إعدادي</option>
-                <option value="تالتة إعدادي">تالتة إعدادي</option>
-              </optgroup>
-              <optgroup label="المرحلة الثانوية">
-                <option value="أولى ثانوي">أولى ثانوي</option>
-                <option value="تانية ثانوي">تانية ثانوي</option>
-                <option value="تالتة ثانوي">تالتة ثانوي</option>
-              </optgroup>
+              <option value="رياضيات">رياضيات</option>
+              <option value="فيزياء">فيزياء</option>
+              <option value="كيمياء">كيمياء</option>
+              <option value="أحياء">أحياء</option>
+              <option value="لغة عربية">لغة عربية</option>
+              <option value="لغة إنجليزية">لغة إنجليزية</option>
+              <option value="لغة فرنسية">لغة فرنسية</option>
+              <option value="تاريخ">تاريخ</option>
+              <option value="جغرافيا">جغرافيا</option>
             </select>
           </div>
         </div>
 
-        {/* شبكة كروت المعلمين */}
+        {/* شبكة كروت المعلمين الديناميكية */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredTeachers.length > 0 ? (
+          {loading ? (
+            <div className="col-span-full flex justify-center items-center py-20">
+              <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : filteredTeachers.length > 0 ? (
             filteredTeachers.map((teacher) => {
               const isFavorite = favorites.includes(teacher.id);
+              const teacherImage =
+                teacher.avatarUrl ||
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                  teacher.name || "معلم",
+                )}&background=2563EB&color=fff&bold=true`;
+
               return (
                 <div
                   key={teacher.id}
                   className="bg-white dark:bg-gray-900 rounded-3xl p-6 border border-gray-200/80 dark:border-gray-800 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between space-y-6"
                 >
-                  {/* رأس الكارت (الصورة، الاسم، الحالة، زر المفضلة) */}
+                  {/* رأس الكارت */}
                   <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-4">
                     <div className="flex items-center gap-3">
                       <img
-                        src={teacher.image}
+                        src={teacherImage}
                         alt={teacher.name}
                         className="w-12 h-12 rounded-full border border-gray-200 dark:border-gray-700 object-cover"
                       />
@@ -325,19 +272,19 @@ function TeachersSearch() {
                           {teacher.name}
                         </h3>
                         <p className="text-xs text-purple-600 dark:text-purple-400 font-semibold">
-                          {teacher.subject}
+                          {teacher.subject || "معلم مادة"}
                         </p>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2">
                       <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-900">
-                        {teacher.status}
+                        🟢 متاح
                       </span>
-                      {/* زر المفضلة (القلب) */}
+                      {/* زر المفضلة */}
                       <button
                         onClick={() => toggleFavorite(teacher.id)}
-                        className="w-9 h-9 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center text-lg transition-transform active:scale-90 shadow-2xs"
+                        className="w-9 h-9 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center text-lg transition-transform active:scale-90"
                         title={
                           isFavorite ? "إزالة من المفضلة" : "إضافة للمفضلة"
                         }
@@ -347,32 +294,41 @@ function TeachersSearch() {
                     </div>
                   </div>
 
-                  {/* تفاصيل المدرس */}
+                  {/* تفاصيل المدرس الشاملة */}
                   <div className="space-y-2.5 text-xs">
                     <div className="flex justify-between items-center bg-gray-50 dark:bg-gray-800/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
                       <span className="text-gray-500 dark:text-gray-400 font-medium">
-                        الصفوف:
+                        المادة:
                       </span>
-                      <span className="font-bold text-navy dark:text-white">
-                        {teacher.grades.join("، ")}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between items-center bg-gray-50 dark:bg-gray-800/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
-                      <span className="text-gray-500 dark:text-gray-400 font-medium">
-                        المكان:
-                      </span>
-                      <span className="font-bold text-navy dark:text-white">
-                        {teacher.governorate} - {teacher.area}
+                      <span className="font-bold text-purple-600 dark:text-purple-400">
+                        {teacher.subject || "غير محدد"}
                       </span>
                     </div>
 
                     <div className="flex justify-between items-center bg-gray-50 dark:bg-gray-800/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
                       <span className="text-gray-500 dark:text-gray-400 font-medium">
-                        نوع الحصة:
+                        المحافظة:
+                      </span>
+                      <span className="font-bold text-navy dark:text-white">
+                        {teacher.governorate || "غير محدد"}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center bg-gray-50 dark:bg-gray-800/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                      <span className="text-gray-500 dark:text-gray-400 font-medium">
+                        المنطقة:
+                      </span>
+                      <span className="font-bold text-navy dark:text-white">
+                        {teacher.area || "غير محدد"}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between items-center bg-gray-50 dark:bg-gray-800/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                      <span className="text-gray-500 dark:text-gray-400 font-medium">
+                        وسيلة التدريس:
                       </span>
                       <span className="font-bold text-primary dark:text-blue-400">
-                        {teacher.type}
+                        {teacher.teachingType || "أونلاين وفي البيت"}
                       </span>
                     </div>
 
@@ -380,10 +336,8 @@ function TeachersSearch() {
                       <span className="text-gray-500 dark:text-gray-400 font-medium">
                         سعر الحصة:
                       </span>
-                      <span
-                        className={`font-bold ${teacher.price.includes("غير معلن") ? "text-gray-500 dark:text-gray-400" : "text-emerald-600 dark:text-emerald-400"}`}
-                      >
-                        {teacher.price}
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                        {teacher.price || "غير معلن (حسب الاتفاق)"}
                       </span>
                     </div>
 
@@ -392,31 +346,41 @@ function TeachersSearch() {
                         التقييم:
                       </span>
                       <div className="text-amber-500 font-bold text-sm tracking-widest">
-                        {"⭐".repeat(teacher.rating)}
+                        ⭐⭐⭐⭐⭐
                       </div>
                     </div>
                   </div>
 
                   {/* زر الواتساب المباشر */}
-                  <a
-                    href={`https://wa.me/${teacher.phone}?text=${encodeURIComponent(`ازيك يا ${teacher.name}، أنا شفت بروفايلك على منصة "علمني" وحابب أتفق معاك على درس.`)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-xs transition-all shadow-sm flex items-center justify-center gap-2"
-                  >
-                    <span>تواصل عبر واتساب</span>
-                    <span className="text-base">💬</span>
-                  </a>
+                  {teacher.phone ? (
+                    <a
+                      href={`https://wa.me/${
+                        teacher.phone
+                      }?text=${encodeURIComponent(
+                        `ازيك يا ${teacher.name}، أنا شفت بروفايلك على منصة "علمني" وحابب أتفق معاك على درس.`,
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-xs transition-all shadow-sm flex items-center justify-center gap-2"
+                    >
+                      <span>تواصل عبر واتساب</span>
+                      <span className="text-base">💬</span>
+                    </a>
+                  ) : (
+                    <div className="w-full bg-gray-200 dark:bg-gray-800 text-gray-400 text-center font-bold py-3 rounded-xl text-xs">
+                      رقم الواتساب غير مسجل
+                    </div>
+                  )}
                 </div>
               );
             })
           ) : (
             <div className="col-span-full text-center py-16 bg-white dark:bg-gray-900 rounded-3xl border border-gray-200 dark:border-gray-800">
               <p className="text-gray-500 dark:text-gray-400 text-base font-semibold">
-                عذراً، مفيش مدرسين مطابقين لبحثك حالياً 🔍
+                عذراً، مفيش مدرسين مسجلين بالمعايير دي حالياً 🔍
               </p>
               <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">
-                جرب تغير فلاتر البحث أو اختار محافظة ومنطقة تانية.
+                جرب تغير فلاتر البحث أو تنتظر انضمام معلمين جدد.
               </p>
             </div>
           )}

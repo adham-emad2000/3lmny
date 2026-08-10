@@ -1,10 +1,18 @@
 import React, { useState } from "react";
 
-// بنستقبل prop اسمها userType (ممكن تكون "student" أو "teacher" أو لو مش موجودة هتظهر كـ "guest" للزائر العام)
-function PlatformFeatures({ userType = "guest" }) {
-  // لو مفيش يوزر مسجل، بنخلي الحالة الافتراضية للتبويب "teacher" (زي ما كانت)
+function PlatformFeatures({ userType }) {
+  // قراءة بيانات المستخدم من الكاش المحلي تلقائياً لو الـ prop مش موجودة
+  const [currentUserData] = useState(() => {
+    const saved = localStorage.getItem("elemny_user_data");
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  // تحديد نوع المستخدم الفعلي (لو مبعوثة prop نستخدمها، لو لأ نقرأها من الكاش، ولو مفيش خالص يبقى guest)
+  const effectiveUserType =
+    userType || (currentUserData ? currentUserData.role : "guest");
+
   const [activeTab, setActiveTab] = useState(
-    userType === "student" ? "student" : "teacher",
+    effectiveUserType === "student" ? "student" : "teacher",
   );
 
   return (
@@ -13,26 +21,26 @@ function PlatformFeatures({ userType = "guest" }) {
       className="py-24 bg-[#F1F3F5] dark:bg-gray-950 relative overflow-hidden border-t border-gray-200/80 dark:border-gray-800 shadow-inner transition-colors duration-300"
     >
       <div className="max-w-7xl mx-auto px-6">
-        {/* عنوان السيكشن (بيتغير حسب مين اللي فاتح) */}
+        {/* عنوان السيكشن */}
         <div className="text-center max-w-2xl mx-auto mb-12 space-y-4">
           <span className="bg-white dark:bg-gray-900 text-primary text-sm font-bold px-4 py-1.5 rounded-full border border-blue-100 dark:border-gray-800 shadow-xs inline-block">
             🎯 مميزات مصممة خصيصاً ليك
           </span>
           <h2 className="text-3xl lg:text-4xl font-extrabold text-navy dark:text-white">
-            {userType === "student"
+            {effectiveUserType === "student"
               ? "إزاي منصة 'علمني' بتسهل عليك دراستك؟"
-              : userType === "teacher"
+              : effectiveUserType === "teacher"
                 ? "إزاي 'علمني' بتساعدك تزود دخلك؟"
                 : 'ليه تختار منصة "علمني"؟'}
           </h2>
           <p className="text-gray-600 dark:text-gray-400 text-base">
-            {userType === "guest"
+            {effectiveUserType === "guest"
               ? "سواء كنت معلم وعايز تزود دخلك، أو طالب بتدور على الأكفأ.. وفرنالك البيئة المثالية."
               : "خدمات حصرية متظبطة بالظبط على احتياجاتك لتجربة تعليمية أسرع وأسهل."}
           </p>
 
-          {/* لو اليوزر زائر عادي (Guest)، بنظهر له زراير التبديل. لو طالب أو معلم محدد، بنخفي الزراير دي خالص! */}
-          {userType === "guest" && (
+          {/* أزرار التبديل تظهر فقط للزائر (Guest) ولا تظهر أبداً للمسجلين */}
+          {effectiveUserType === "guest" && (
             <div className="flex justify-center pt-4">
               <div className="bg-white dark:bg-gray-900 p-1.5 rounded-2xl shadow-md border border-gray-200/80 dark:border-gray-800 inline-flex gap-2">
                 <button
@@ -60,12 +68,12 @@ function PlatformFeatures({ userType = "guest" }) {
           )}
         </div>
 
-        {/* الكارت الأساسي اللي بيتغير محتواه حسب الزائر أو دور اليوزر المسجل */}
+        {/* الكارت الأساسي */}
         <div className="max-w-5xl mx-auto bg-white dark:bg-gray-900 rounded-3xl p-8 lg:p-12 shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-200/60 dark:border-gray-800 relative overflow-hidden transition-all duration-500">
           <div className="absolute top-0 right-0 w-3 h-full bg-gradient-to-b from-primary via-purple-500 to-emerald-400"></div>
 
-          {userType === "teacher" ||
-          (userType === "guest" && activeTab === "teacher") ? (
+          {effectiveUserType === "teacher" ||
+          (effectiveUserType === "guest" && activeTab === "teacher") ? (
             // محتوى المعلم
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center animate-fadeIn">
               <div className="space-y-6">
