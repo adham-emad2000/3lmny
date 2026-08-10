@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { db } from "../firebase";
 import {
   collection,
@@ -11,6 +12,7 @@ import {
 } from "firebase/firestore";
 
 function TeacherLive() {
+  const navigate = useNavigate();
   const [userData] = useState(() => {
     const saved = localStorage.getItem("elemny_user_data");
     return saved ? JSON.parse(saved) : null;
@@ -28,6 +30,10 @@ function TeacherLive() {
   const [counterPrices, setCounterPrices] = useState({});
 
   const prevPendingCount = useRef(0);
+
+  // التحقق من باقة المدرس الحالية
+  const teacherTier = userData?.subscription?.tier || "free";
+  const isFree = teacherTier === "free";
 
   // دالة تشغيل صوت التنبيه
   const playNotificationSound = () => {
@@ -98,8 +104,13 @@ function TeacherLive() {
     }
   };
 
-  // إرسال عرض سعر جديد (تفاوض)
+  // إرسال عرض سعر جديد (تفاوض) - متاح فقط للباقات المدفوعة
   const handleSendCounterOffer = async (reqId) => {
+    if (isFree) {
+      navigate("/upgrade");
+      return;
+    }
+
     const newPrice = Number(counterPrices[reqId]);
     if (!newPrice || newPrice <= 0) {
       alert("يرجى كتابة سعر صحيح أولاً");
@@ -144,15 +155,30 @@ function TeacherLive() {
       <div className="max-w-5xl mx-auto space-y-8">
         <div className="bg-white dark:bg-gray-900 p-6 rounded-3xl border border-gray-200 dark:border-gray-800 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-black text-navy dark:text-white">
-              مرحباً أستاذ {userData?.name} 👨‍🏫
-            </h1>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-2xl font-black text-navy dark:text-white">
+                مرحباً أستاذ {userData?.name} 👨‍🏫
+              </h1>
+              {!isFree && (
+                <span className="text-xs bg-amber-400 text-white px-2.5 py-0.5 rounded-full font-bold shadow-sm">
+                  سريع الرد ⚡
+                </span>
+              )}
+            </div>
             <p className="text-xs text-gray-500 mt-1">
               لوحة التحكم اللحظية - محافظة {userData?.governorate} | مادة{" "}
               {userData?.subject}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            {isFree && (
+              <button
+                onClick={() => navigate("/upgrade")}
+                className="bg-gradient-to-r from-amber-500 to-orange-500 hover:opacity-90 text-white px-4 py-2 rounded-2xl text-xs font-bold shadow-md transition-all"
+              >
+                ✨ ترقية الحساب (فتح التفاوض)
+              </button>
+            )}
             <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-900 text-blue-700 dark:text-blue-400 px-4 py-2 rounded-2xl text-xs font-bold flex items-center gap-2">
               <span>طلبات متاحة: {pendingRequests.length}</span>
             </div>
@@ -297,31 +323,45 @@ function TeacherLive() {
                     </div>
                   </div>
 
-                  {/* صندوق التفاوض واقتراح سعر جديد */}
+                  {/* صندوق التفاوض أو تنبيه الترقية */}
                   <div className="bg-gray-50 dark:bg-gray-800/50 p-3 rounded-2xl border border-gray-200 dark:border-gray-700 space-y-2">
                     <label className="block text-[11px] font-bold text-gray-500 dark:text-gray-400">
                       اقترح سعراً جديداً (اختياري للتفاوض):
                     </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="number"
-                        placeholder={`السعر الحالي: ${req.price}`}
-                        value={counterPrices[req.id] || ""}
-                        onChange={(e) =>
-                          setCounterPrices({
-                            ...counterPrices,
-                            [req.id]: e.target.value,
-                          })
-                        }
-                        className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-xs text-navy dark:text-white"
-                      />
-                      <button
-                        onClick={() => handleSendCounterOffer(req.id)}
-                        className="bg-purple-600 hover:bg-purple-700 text-white font-bold px-3 py-2 rounded-xl text-xs whitespace-nowrap"
-                      >
-                        إرسال عرض 💬
-                      </button>
-                    </div>
+                    {isFree ? (
+                      <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 p-3 rounded-xl text-center space-y-2">
+                        <p className="text-[11px] text-amber-800 dark:text-amber-300 font-bold">
+                          🔒 ميزة التفاوض متاحة للباقات المدفوعة فقط.
+                        </p>
+                        <button
+                          onClick={() => navigate("/upgrade")}
+                          className="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 rounded-xl text-xs transition-all shadow-sm"
+                        >
+                          رقّي باقتك لتتمكن من التفاوض 🚀
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <input
+                          type="number"
+                          placeholder={`السعر الحالي: ${req.price}`}
+                          value={counterPrices[req.id] || ""}
+                          onChange={(e) =>
+                            setCounterPrices({
+                              ...counterPrices,
+                              [req.id]: e.target.value,
+                            })
+                          }
+                          className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 text-xs text-navy dark:text-white"
+                        />
+                        <button
+                          onClick={() => handleSendCounterOffer(req.id)}
+                          className="bg-purple-600 hover:bg-purple-700 text-white font-bold px-3 py-2 rounded-xl text-xs whitespace-nowrap"
+                        >
+                          إرسال عرض 💬
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   <div className="pt-1 flex gap-3">

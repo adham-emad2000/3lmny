@@ -2,12 +2,17 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Nav from "./Componants/Nav";
 import Hero from "./Componants/Hero";
+import ProTeacher from "./Componants/ProTeacher"; // سيكشن المعلمين المميزين في الهوم
 import HowItWorks from "./Componants/PlatformFeatures";
 import FAQ from "./Componants/FAQ";
 import Footer from "./Componants/Footer";
 import TeachersSearch from "./Pages/TeachersSearch";
 import StudentRequest from "./Pages/StudentRequest"; // صفحة الطلب اللحظي للطالب
 import TeacherLive from "./Pages/TeacherLive"; // صفحة استقبال الطلبات للمدرس
+import UpgradePage from "./Pages/UpgradePage"; // صفحة ترقية الباقات للمدرسين
+import Subscribe from "./Pages/Subscribe"; // صفحة الدفع والاشتراك والبرومو كود
+import Profile from "./Pages/Profile"; // صفحة البروفايل الشخصي
+import AdminDashboard from "./Pages/AdminDashboard"; // لوحة تحكم الأدمن للإيصالات
 import Auth from "./Pages/Auth";
 import ScrollToTop from "./Componants/ScrollToTop";
 import ProtectedRoute from "./Componants/ProtectedRoute";
@@ -16,6 +21,7 @@ function Home() {
   return (
     <>
       <Hero />
+      <ProTeacher />
       <HowItWorks />
       <FAQ />
     </>
@@ -64,6 +70,38 @@ function App() {
               element={
                 <ProtectedRoute>
                   <TeacherLive />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/upgrade"
+              element={
+                <ProtectedRoute>
+                  <UpgradePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/subscribe"
+              element={
+                <ProtectedRoute>
+                  <Subscribe />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <AdminDashboard />
                 </ProtectedRoute>
               }
             />

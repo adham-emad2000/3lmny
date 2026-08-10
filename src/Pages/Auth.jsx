@@ -131,7 +131,7 @@ function Auth() {
     }
   };
 
-  // دالة ضغط الصورة وتصغير حجمها قبل تحويلها لـ Base64 (حل مجاني 100%)
+  // دالة ضغط الصورة وتصغير حجمها قبل تحويلها لـ Base64
   const compressAndConvertImage = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -279,6 +279,11 @@ function Auth() {
           teachingType: role === "teacher" ? formData.teachingType : "",
           price: role === "teacher" ? finalPrice : "",
           avatarUrl: avatarUrl,
+          // 🚀 الحقل الجديد الخاص بنظام الباقات للمدرسين (افتراضياً free)
+          subscription: {
+            tier: "free",
+            expiryDate: null,
+          },
           createdAt: new Date().toISOString(),
         };
 

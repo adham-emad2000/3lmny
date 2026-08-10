@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { auth, db } from "../firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
@@ -9,6 +9,8 @@ function Nav() {
   const navigate = useNavigate();
 
   const [isDark, setIsDark] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   // بنقرأ من الكاش فوراً (صفر تأخير، وصفر لودر عند الرفرش)
   const [userData, setUserData] = useState(() => {
@@ -26,6 +28,17 @@ function Nav() {
     }
   }, []);
 
+  // إغلاق القائمة المنسدلة عند النقر خارجها
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const toggleDarkMode = () => {
     if (isDark) {
       document.documentElement.classList.remove("dark");
@@ -38,7 +51,7 @@ function Nav() {
     }
   };
 
-  // المزامنة الصامتة في الخلفية (Background Sync) بدون أي لودر أو تأثير على الواجهة
+  // المزامنة الصامتة في الخلفية (Background Sync) بدون أي لودر
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
@@ -64,6 +77,7 @@ function Nav() {
       await signOut(auth);
       localStorage.removeItem("elemny_user_data");
       setUserData(null);
+      setDropdownOpen(false);
       navigate("/auth");
     } catch (error) {
       console.error("Error signing out:", error);
@@ -111,13 +125,17 @@ function Nav() {
         </button>
 
         {userData ? (
-          <div className="flex items-center gap-4 animate-in fade-in duration-300">
-            <div className="flex items-center gap-3">
+          <div className="relative" ref={dropdownRef}>
+            {/* زر فتح القائمة عند النقر على الاسم أو الصورة */}
+            <div
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+              className="flex items-center gap-3 cursor-pointer select-none bg-gray-50 dark:bg-gray-800/60 hover:bg-gray-100 dark:hover:bg-gray-800 p-1.5 px-3 rounded-2xl border border-gray-200 dark:border-gray-700 transition-all"
+            >
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-bold text-navy dark:text-white">
+                <p className="text-xs font-bold text-navy dark:text-white">
                   {userData.name}
                 </p>
-                <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400">
                   {userData.role === "teacher" ? "👨‍🏫 معلم" : "🎓 طالب"}
                 </p>
               </div>
@@ -126,38 +144,61 @@ function Nav() {
                 <img
                   src={userData.avatarUrl}
                   alt="User Avatar"
-                  className="w-10 h-10 rounded-full border-2 border-gray-100 dark:border-gray-700 object-cover shadow-inner"
+                  className="w-9 h-9 rounded-full border border-gray-200 dark:border-gray-700 object-cover shadow-sm"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-full border-2 border-gray-100 dark:border-gray-700 bg-primary/10 text-primary dark:text-blue-400 flex items-center justify-center font-black text-base shadow-inner overflow-hidden">
+                <div className="w-9 h-9 rounded-full border border-gray-200 dark:border-gray-700 bg-primary/10 text-primary dark:text-blue-400 flex items-center justify-center font-black text-sm shadow-sm overflow-hidden">
                   {userData.name ? userData.name.charAt(0) : "👤"}
                 </div>
               )}
             </div>
 
-            <div className="w-px h-8 bg-gray-200 dark:bg-gray-800 hidden sm:block"></div>
+            {/* القائمة المنسدلة (Dropdown Menu) */}
+            {dropdownOpen && (
+              <div className="absolute left-0 mt-2 w-56 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div className="p-3 border-b border-gray-100 dark:border-gray-800 sm:hidden">
+                  <p className="text-xs font-bold text-navy dark:text-white truncate">
+                    {userData.name}
+                  </p>
+                  <p className="text-[10px] text-gray-500">
+                    {userData.role === "teacher" ? "👨‍🏫 معلم" : "🎓 طالب"}
+                  </p>
+                </div>
 
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors duration-200 cursor-pointer"
-              title="تسجيل خروج"
-            >
-              <span className="hidden md:inline">خروج</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2}
-                stroke="currentColor"
-                className="w-5 h-5"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"
-                />
-              </svg>
-            </button>
+                <div className="p-1.5 space-y-1">
+                  <button
+                    onClick={() => {
+                      setDropdownOpen(false);
+                      navigate("/profile");
+                    }}
+                    className="w-full text-right flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors"
+                  >
+                    <span>👤</span> تعديل وعرض البروفايل
+                  </button>
+
+                  {userData.role === "teacher" && (
+                    <button
+                      onClick={() => {
+                        setDropdownOpen(false);
+                        navigate("/upgrade");
+                      }}
+                      className="w-full text-right flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 rounded-xl transition-colors"
+                    >
+                      <span>✨</span> ترقية الباقات والاشتراك
+                    </button>
+                  )}
+
+                  <div className="h-px bg-gray-100 dark:bg-gray-800 my-1"></div>
+
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-right flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-colors"
+                  >
+                    <span>🚪</span> تسجيل الخروج
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <Link
