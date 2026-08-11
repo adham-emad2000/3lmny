@@ -6,9 +6,8 @@ function ProTeacher() {
   const [proTeachers, setProTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 3; // 3 مدرسين جنب بعض في الصفحة
+  const itemsPerPage = 3;
 
-  // دالة تنسيق رقم الواتساب وتظبيطه للرابط الرسمي بالـ +
   const getWhatsAppUrl = (phone, teacherName) => {
     if (!phone) return "#";
     let cleaned = phone.replace(/\D/g, "");
@@ -32,14 +31,13 @@ function ProTeacher() {
           ...doc.data(),
         }));
 
-        // تصفية المعلمين المشتركين في باقة PRO حصرياً بشرط أن تكون الحالة نشطة (active)
         const filtered = teachersList.filter(
           (t) =>
             t.role === "teacher" &&
             t.subscription &&
             t.subscription.tier &&
             t.subscription.tier.toLowerCase() === "pro" &&
-            t.subscription.status === "active", // 👈 الشرط الحاسم: منع ظهور المعلق (pending)
+            t.subscription.status === "active",
         );
 
         setProTeachers(filtered);
@@ -53,7 +51,6 @@ function ProTeacher() {
     fetchProTeachers();
   }, []);
 
-  // Pagination Logic
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentTeachers = proTeachers.slice(indexOfFirstItem, indexOfLastItem);
@@ -67,7 +64,6 @@ function ProTeacher() {
     );
   }
 
-  // لو مفيش مدرسين برو مفعلين حالياً، السيكشن مش هيظهر عشان الهوم يفضل منظم
   if (proTeachers.length === 0) {
     return null;
   }
@@ -79,7 +75,7 @@ function ProTeacher() {
     >
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="text-center space-y-2">
-          <h2 className="text-2xl lg:text-3xl  font-black text-navy dark:text-white">
+          <h2 className="text-2xl lg:text-3xl font-black text-navy dark:text-white">
             اقتراحات افضل المدرسين
           </h2>
           <p className="text-gray-500 text-xs">
@@ -131,6 +127,26 @@ function ProTeacher() {
                     {teacher.governorate} - {teacher.area}
                   </strong>
                 </div>
+
+                {/* 👈 عرض الصفوف الدراسية في قسم الكارد الرئيسي */}
+                <div className="flex flex-col gap-1">
+                  <span>الصفوف:</span>
+                  <div className="flex flex-wrap gap-1">
+                    {teacher.grades && teacher.grades.length > 0 ? (
+                      teacher.grades.map((g, idx) => (
+                        <span
+                          key={idx}
+                          className="bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 text-[10px] font-bold px-2 py-0.5 rounded-md"
+                        >
+                          {g}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-gray-400">غير محدد</span>
+                    )}
+                  </div>
+                </div>
+
                 <div className="flex justify-between">
                   <span>الوسيلة:</span>
                   <strong className="text-navy dark:text-white">
@@ -149,13 +165,12 @@ function ProTeacher() {
                 rel="noopener noreferrer"
                 className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs text-center transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>تواصل عبر الواتساب 💬</span>
+                <span>تواصل عبر واتساب 💬</span>
               </a>
             </div>
           ))}
         </div>
 
-        {/* أزرار الـ Pagination */}
         {totalPages > 1 && (
           <div className="flex justify-center items-center gap-3 pt-4">
             <button

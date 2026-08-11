@@ -8,7 +8,6 @@ function Profile() {
     return saved ? JSON.parse(saved) : {};
   });
 
-  // قاعدة بيانات المحافظات والمناطق المصرية
   const egyptRegions = {
     القاهرة: [
       "مدينة نصر",
@@ -65,7 +64,7 @@ function Profile() {
 
   const [formData, setFormData] = useState({
     phone: userData.phone || "",
-    subject: userData.subject || "رياضيات",
+    subject: userData.subject || "رياضيات (عربي)",
     governorate: userData.governorate || "القاهرة",
     area:
       userData.area ||
@@ -98,7 +97,6 @@ function Profile() {
       const userRef = doc(db, "users", userData.uid);
       await updateDoc(userRef, formData);
 
-      // تحديث الـ LocalStorage
       const updatedData = { ...userData, ...formData };
       localStorage.setItem("elemny_user_data", JSON.stringify(updatedData));
       setUserData(updatedData);
@@ -121,7 +119,6 @@ function Profile() {
       className="min-h-screen bg-gray-50 dark:bg-gray-950 py-12 px-6"
     >
       <div className="max-w-2xl mx-auto space-y-8">
-        {/* Header / Card Info */}
         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl p-6 md:p-8 shadow-sm flex flex-col sm:flex-row items-center gap-6">
           <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-800 border-2 border-primary/30 flex-shrink-0">
             {userData.avatarUrl ? (
@@ -152,12 +149,10 @@ function Profile() {
           </div>
         </div>
 
-        {/* Form Update */}
         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
           <h2 className="text-lg font-extrabold text-navy dark:text-white">
             تعديل بيانات الحساب
           </h2>
-
           {message && (
             <div className="p-3 rounded-xl text-xs font-bold bg-blue-50 text-blue-600 text-center">
               {message}
@@ -167,7 +162,7 @@ function Profile() {
           <form onSubmit={handleUpdate} className="space-y-4">
             <div>
               <label className="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">
-                الاسم الكامل (لا يمكن تعديله للأمان)
+                الاسم الكامل
               </label>
               <input
                 type="text"
@@ -192,7 +187,6 @@ function Profile() {
                   />
                 </div>
 
-                {/* المادة الدراسية (قائمة منسدلة) */}
                 <div>
                   <label className="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">
                     المادة الدراسية
@@ -203,35 +197,65 @@ function Profile() {
                     onChange={handleChange}
                     className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm text-navy dark:text-white outline-none focus:border-primary"
                   >
-                    <optgroup label="المواد العلمية والرياضية">
-                      <option value="رياضيات">رياضيات</option>
-                      <option value="فيزياء">فيزياء</option>
-                      <option value="كيمياء">كيمياء</option>
-                      <option value="أحياء">أحياء</option>
+                    <optgroup label="القرآن الكريم والشرعيات">
+                      <option value="تحفيظ قرآن وتجويد">
+                        تحفيظ قرآن وتجويد
+                      </option>
+                      <option value="تربية إسلامية">تربية إسلامية</option>
+                    </optgroup>
+                    <optgroup label="مراحل التأسيس والمهارات">
+                      <option value="تأسيس مبكر وقراءة وكتابة">
+                        تأسيس مبكر (قراءة وكتابة)
+                      </option>
+                      <option value="تأسيس لغة إنجليزية (Phonics)">
+                        تأسيس لغة إنجليزية (Phonics)
+                      </option>
+                      <option value="تأسيس رياضيات وحساب">
+                        تأسيس رياضيات وحساب
+                      </option>
+                    </optgroup>
+                    <optgroup label="رياضيات">
+                      <option value="رياضيات (عربي)">رياضيات (عربي)</option>
+                      <option value="رياضيات (لغات)">
+                        رياضيات (لغات - Math)
+                      </option>
+                    </optgroup>
+                    <optgroup label="العلوم والفيزياء والكيمياء والأحياء">
+                      <option value="علوم (عربي)">علوم (عربي)</option>
+                      <option value="علوم (لغات)">علوم (لغات - Science)</option>
+                      <option value="فيزياء (عربي)">فيزياء (عربي)</option>
+                      <option value="فيزياء (لغات)">
+                        فيزياء (لغات - Physics)
+                      </option>
+                      <option value="كيمياء (عربي)">كيمياء (عربي)</option>
+                      <option value="كيمياء (لغات)">
+                        كيمياء (لغات - Chemistry)
+                      </option>
+                      <option value="أحياء (عربي)">أحياء (عربي)</option>
+                      <option value="أحياء (لغات)">
+                        أحياء (لغات - Biology)
+                      </option>
                       <option value="جيولوجيا">جيولوجيا</option>
-                      <option value="علوم">علوم</option>
                     </optgroup>
                     <optgroup label="اللغات">
                       <option value="لغة عربية">لغة عربية</option>
-                      <option value="لغة إنجليزية">لغة إنجليزية</option>
-                      <option value="لغة فرنسية">لغة فرنسية</option>
-                      <option value="لغة ألمانية">لغة ألمانية</option>
+                      <option value="لغة إنجليزية">
+                        لغة إنجليزية (English)
+                      </option>
+                      <option value="لغة فرنسية">لغة فرنسية (Français)</option>
+                      <option value="لغة ألمانية">لغة ألمانية (Deutsch)</option>
                     </optgroup>
-                    <optgroup label="المواد الأدبية والفلسفية">
+                    <optgroup label="المواد الأدبية">
                       <option value="تاريخ">تاريخ</option>
                       <option value="جغرافيا">جغرافيا</option>
-                      <option value="فلسفة">فلسفة ومنطق</option>
-                      <option value="علم نفس">علم نفس واجتماع</option>
+                      <option value="فلسفة ومنطق">فلسفة ومنطق</option>
+                      <option value="علم نفس واجتماع">علم نفس واجتماع</option>
                       <option value="دراسات اجتماعية">دراسات اجتماعية</option>
-                    </optgroup>
-                    <optgroup label="مواضيع أخرى">
-                      <option value="حاسب آلي">حاسب آلي وتكنولوجيا</option>
                     </optgroup>
                   </select>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* المحافظة (قائمة منسدلة) */}
                   <div>
                     <label className="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">
                       المحافظة
@@ -249,8 +273,6 @@ function Profile() {
                       ))}
                     </select>
                   </div>
-
-                  {/* المنطقة (قائمة منسدلة تتحدث تلقائياً حسب المحافظة) */}
                   <div>
                     <label className="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">
                       المنطقة
@@ -275,7 +297,7 @@ function Profile() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-primary hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl text-sm transition-all shadow-md"
+              className="w-full bg-primary hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl text-sm transition-all shadow-md cursor-pointer"
             >
               {loading ? "جاري الحفظ..." : "حفظ التعديلات ✅"}
             </button>

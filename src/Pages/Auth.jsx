@@ -9,11 +9,11 @@ import {
   sendPasswordResetEmail,
 } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { useAuth } from "../Context/AuthContext"; // 👈 استدعاء الكونتكست المركزي
+import { useAuth } from "../Context/AuthContext";
 
 function Auth() {
   const navigate = useNavigate();
-  const { login } = useAuth(); // 👈 استخدام دالة الـ login المركزية
+  const { login } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [role, setRole] = useState("student");
   const [loading, setLoading] = useState(false);
@@ -92,7 +92,7 @@ function Auth() {
     email: "",
     password: "",
     phone: "",
-    subject: "رياضيات",
+    subject: "رياضيات (عربي)",
     governorate: "القاهرة",
     area: "",
     teachingType: "أونلاين وفي البيت",
@@ -145,7 +145,6 @@ function Auth() {
           const canvas = document.createElement("canvas");
           let width = img.width;
           let height = img.height;
-
           const MAX_WIDTH = 200;
           const MAX_HEIGHT = 200;
 
@@ -163,10 +162,8 @@ function Auth() {
 
           canvas.width = width;
           canvas.height = height;
-
           const ctx = canvas.getContext("2d");
           ctx.drawImage(img, 0, 0, width, height);
-
           const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.7);
           resolve(compressedDataUrl);
         };
@@ -185,9 +182,7 @@ function Auth() {
       setLoading(true);
       setErrorMessage("");
       setSuccessMessage("");
-
       await sendPasswordResetEmail(auth, formData.email);
-
       setSuccessMessage(
         "تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.",
       );
@@ -252,7 +247,6 @@ function Auth() {
     try {
       if (isLogin) {
         isSigningIn.current = true;
-
         const userCredential = await signInWithEmailAndPassword(
           auth,
           formData.email,
@@ -263,13 +257,12 @@ function Auth() {
         const docRef = doc(db, "users", user.uid);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          login(docSnap.data()); // 👈 استخدام دالة الـ login لتحديث الكونتكست والذاكرة معاً فوراً
+          login(docSnap.data());
         }
 
         navigate("/", { replace: true });
       } else {
         isCreatingAccount.current = true;
-
         const userCredential = await createUserWithEmailAndPassword(
           auth,
           formData.email,
@@ -323,7 +316,6 @@ function Auth() {
         setSelectedGrades([]);
         setAvatar(null);
         setAvatarPreview(null);
-
         isCreatingAccount.current = false;
       }
     } catch (error) {
@@ -513,8 +505,8 @@ function Auth() {
             />
             {!isLogin && (
               <p className="text-[11px] text-gray-400 mt-1">
-                يرجى إدخال البريد الإلكتروني بشكل صحيح (مثال: name@domain.com)
-                لاستخدامه في تسجيل الدخول.
+                يرجى إدخال البريد الإلكتروني بشكل صحيح لاستخدامه في تسجيل
+                الدخول.
               </p>
             )}
           </div>
@@ -597,7 +589,7 @@ function Auth() {
 
               <div>
                 <label className="block text-xs font-bold text-gray-600 dark:text-gray-300 mb-1">
-                  المادة الدراسية
+                  المادة الدراسية (عربي / لغات / تحفيظ قرآن)
                 </label>
                 <select
                   name="subject"
@@ -605,29 +597,65 @@ function Auth() {
                   onChange={handleChange}
                   className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm text-navy dark:text-white outline-none focus:border-primary"
                 >
-                  <optgroup label="المواد العلمية والرياضية">
-                    <option value="رياضيات">رياضيات</option>
-                    <option value="فيزياء">فيزياء</option>
-                    <option value="كيمياء">كيمياء</option>
-                    <option value="أحياء">أحياء</option>
-                    <option value="جيولوجيا">جيولوجيا</option>
-                    <option value="علوم">علوم</option>
+                  <optgroup label="القرآن الكريم والشرعيات">
+                    <option value="تحفيظ قرآن وتجويد">تحفيظ قرآن وتجويد</option>
+                    <option value="تربية إسلامية">تربية إسلامية</option>
                   </optgroup>
+
+                  <optgroup label="مراحل التأسيس والمهارات">
+                    <option value="تأسيس مبكر وقراءة وكتابة">
+                      تأسيس مبكر (قراءة وكتابة)
+                    </option>
+                    <option value="تأسيس لغة إنجليزية (Phonics)">
+                      تأسيس لغة إنجليزية (Phonics)
+                    </option>
+                    <option value="تأسيس رياضيات وحساب">
+                      تأسيس رياضيات وحساب
+                    </option>
+                  </optgroup>
+
+                  <optgroup label="رياضيات">
+                    <option value="رياضيات (عربي)">رياضيات (عربي)</option>
+                    <option value="رياضيات (لغات)">
+                      رياضيات (لغات - Math)
+                    </option>
+                  </optgroup>
+
+                  <optgroup label="العلوم والفيزياء والكيمياء والأحياء">
+                    <option value="علوم (عربي)">علوم (عربي)</option>
+                    <option value="علوم (لغات)">علوم (لغات - Science)</option>
+                    <option value="فيزياء (عربي)">فيزياء (عربي)</option>
+                    <option value="فيزياء (لغات)">
+                      فيزياء (لغات - Physics)
+                    </option>
+                    <option value="كيمياء (عربي)">كيمياء (عربي)</option>
+                    <option value="كيمياء (لغات)">
+                      كيمياء (لغات - Chemistry)
+                    </option>
+                    <option value="أحياء (عربي)">أحياء (عربي)</option>
+                    <option value="أحياء (لغات)">أحياء (لغات - Biology)</option>
+                    <option value="جيولوجيا">جيولوجيا</option>
+                  </optgroup>
+
                   <optgroup label="اللغات">
                     <option value="لغة عربية">لغة عربية</option>
-                    <option value="لغة إنجليزية">لغة إنجليزية</option>
-                    <option value="لغة فرنسية">لغة فرنسية</option>
-                    <option value="لغة ألمانية">لغة ألمانية</option>
+                    <option value="لغة إنجليزية">لغة إنجليزية (English)</option>
+                    <option value="لغة فرنسية">لغة فرنسية (Français)</option>
+                    <option value="لغة ألمانية">لغة ألمانية (Deutsch)</option>
                   </optgroup>
-                  <optgroup label="المواد الأدبية والفلسفية">
+
+                  <optgroup label="المواد الأدبية">
                     <option value="تاريخ">تاريخ</option>
                     <option value="جغرافيا">جغرافيا</option>
-                    <option value="فلسفة">فلسفة ومنطق</option>
-                    <option value="علم نفس">علم نفس واجتماع</option>
+                    <option value="فلسفة ومنطق">فلسفة ومنطق</option>
+                    <option value="علم نفس واجتماع">علم نفس واجتماع</option>
                     <option value="دراسات اجتماعية">دراسات اجتماعية</option>
                   </optgroup>
-                  <optgroup label="مواضيع أخرى">
-                    <option value="حاسب آلي">حاسب آلي وتكنولوجيا</option>
+
+                  <optgroup label="أخرى">
+                    <option value="حاسب آلي وتكنولوجيا">
+                      حاسب آلي وتكنولوجيا
+                    </option>
                   </optgroup>
                 </select>
               </div>

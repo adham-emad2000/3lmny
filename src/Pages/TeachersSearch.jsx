@@ -64,7 +64,6 @@ function TeachersSearch() {
     }
   };
 
-  // دالة الواتساب المضبوطة بالتكنيك الجديد والـ +
   const getWhatsAppUrl = (phone, name) => {
     if (!phone) return "#";
     let cleaned = phone.replace(/\D/g, "");
@@ -241,10 +240,24 @@ function TeachersSearch() {
               className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 text-sm text-navy dark:text-white focus:outline-none focus:border-primary"
             >
               <option value="">كل المواد</option>
-              <option value="رياضيات">رياضيات</option>
-              <option value="فيزياء">فيزياء</option>
-              <option value="كيمياء">كيمياء</option>
-              <option value="أحياء">أحياء</option>
+              <option value="تحفيظ قرآن وتجويد">تحفيظ قرآن وتجويد</option>
+              <option value="تأسيس مبكر وقراءة وكتابة">
+                تأسيس مبكر وقراءة وكتابة
+              </option>
+              <option value="تأسيس لغة إنجليزية (Phonics)">
+                تأسيس لغة إنجليزية (Phonics)
+              </option>
+              <option value="تأسيس رياضيات وحساب">تأسيس رياضيات وحساب</option>
+              <option value="رياضيات (عربي)">رياضيات (عربي)</option>
+              <option value="رياضيات (لغات)">رياضيات (لغات)</option>
+              <option value="علوم (عربي)">علوم (عربي)</option>
+              <option value="علوم (لغات)">علوم (لغات)</option>
+              <option value="فيزياء (عربي)">فيزياء (عربي)</option>
+              <option value="فيزياء (لغات)">فيزياء (لغات)</option>
+              <option value="كيمياء (عربي)">كيمياء (عربي)</option>
+              <option value="كيمياء (لغات)">كيمياء (لغات)</option>
+              <option value="أحياء (عربي)">أحياء (عربي)</option>
+              <option value="أحياء (لغات)">أحياء (لغات)</option>
               <option value="لغة عربية">لغة عربية</option>
               <option value="لغة إنجليزية">لغة إنجليزية</option>
               <option value="لغة فرنسية">لغة فرنسية</option>
@@ -303,17 +316,15 @@ function TeachersSearch() {
                             {teacher.name}
                           </h3>
 
-                          {/* بادج الـ Pro الذهبي */}
                           {subStatus && subTier === "pro" && (
-                            <span className="inline-flex items-center gap-2 px-5 py-1.5 rounded-full font-black text-amber-950 bg-amber-400 border-2 border-amber-200 shadow-[0_0_15px_rgba(251,191,36,0.5)] tracking-wide uppercase text-[11px]">
-                              <span>👑</span> مميز ومقترح
+                            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full font-black text-amber-950 bg-amber-400 border-2 border-amber-200 shadow-sm tracking-wide uppercase text-[10px]">
+                              <span>👑</span> مميز
                             </span>
                           )}
 
-                          {/* بادج الـ Standard الذهبي (ممكن تخليه نفس اللون أو تفتحه درجة) */}
                           {subStatus && subTier === "standard" && (
-                            <span className="inline-flex items-center gap-2 px-5 py-1.5 rounded-full font-bold text-amber-950 bg-amber-300 border-2 border-amber-100 shadow-sm tracking-wide uppercase text-[11px]">
-                              <span>⭐</span> مميز ومقترح
+                            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full font-bold text-amber-950 bg-amber-300 border-2 border-amber-100 shadow-sm tracking-wide uppercase text-[10px]">
+                              <span>⭐</span> مميز
                             </span>
                           )}
                         </div>
@@ -323,17 +334,13 @@ function TeachersSearch() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => toggleFavorite(teacher.id)}
-                        className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center text-lg transition-transform active:scale-90 cursor-pointer shadow-sm"
-                        title={
-                          isFavorite ? "إزالة من المفضلة" : "إضافة للمفضلة"
-                        }
-                      >
-                        {isFavorite ? "❤️" : "🤍"}
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => toggleFavorite(teacher.id)}
+                      className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center text-lg transition-transform active:scale-90 cursor-pointer shadow-sm"
+                      title={isFavorite ? "إزالة من المفضلة" : "إضافة للمفضلة"}
+                    >
+                      {isFavorite ? "❤️" : "🤍"}
+                    </button>
                   </div>
 
                   <div className="space-y-2.5 text-xs">
@@ -346,21 +353,33 @@ function TeachersSearch() {
                       </span>
                     </div>
 
-                    <div className="flex justify-between items-center bg-gray-50 dark:bg-gray-800/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                    {/* 👈 عرض الصفوف الدراسية على الكارت */}
+                    <div className="flex flex-col gap-1 bg-gray-50 dark:bg-gray-800/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
                       <span className="text-gray-500 dark:text-gray-400 font-medium">
-                        المحافظة:
+                        الصفوف الدراسية:
                       </span>
-                      <span className="font-bold text-navy dark:text-white">
-                        {teacher.governorate || "غير محدد"}
-                      </span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {teacher.grades && teacher.grades.length > 0 ? (
+                          teacher.grades.map((g, idx) => (
+                            <span
+                              key={idx}
+                              className="bg-primary/10 text-primary dark:text-blue-400 text-[10px] font-bold px-2 py-0.5 rounded-md"
+                            >
+                              {g}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-gray-400">غير محدد</span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="flex justify-between items-center bg-gray-50 dark:bg-gray-800/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
                       <span className="text-gray-500 dark:text-gray-400 font-medium">
-                        المنطقة:
+                        المحافظة والمنطقة:
                       </span>
                       <span className="font-bold text-navy dark:text-white">
-                        {teacher.area || "غير محدد"}
+                        {teacher.governorate} - {teacher.area}
                       </span>
                     </div>
 
@@ -381,17 +400,6 @@ function TeachersSearch() {
                         {teacher.price || "غير معلن (حسب الاتفاق)"}
                       </span>
                     </div>
-
-                    {subStatus && subTier === "pro" && (
-                      <div className="flex justify-between items-center bg-purple-50/50 dark:bg-purple-950/30 p-2.5 rounded-xl border border-purple-100 dark:border-purple-900/50">
-                        <span className="text-purple-700 dark:text-purple-300 font-bold">
-                          التقييم العام:
-                        </span>
-                        <div className="text-amber-500 font-bold text-sm tracking-widest">
-                          ⭐⭐⭐⭐⭐
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   {teacher.phone ? (

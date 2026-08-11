@@ -20,7 +20,7 @@ function StudentRequest() {
     return saved ? JSON.parse(saved) : null;
   });
 
-  const [subject, setSubject] = useState("رياضيات");
+  const [subject, setSubject] = useState("رياضيات (عربي)");
   const [grade, setGrade] = useState("أولى ثانوي");
   const [governorate, setGovernorate] = useState(
     userData?.governorate || "القاهرة",
@@ -127,7 +127,6 @@ function StudentRequest() {
     return () => unsubscribe();
   }, [userData]);
 
-  // عداد حقيقي مبني على وقت الإنشاء الحقيقي في الفايربيز (يعمل بدقة حتى لو خرجت من الصفحة ورجعت)
   useEffect(() => {
     if (
       !activeRequest ||
@@ -144,7 +143,7 @@ function StudentRequest() {
 
       const now = Date.now();
       const elapsedSeconds = Math.floor((now - createdAtMillis) / 1000);
-      const remaining = 300 - elapsedSeconds; // 300 ثانية = 5 دقائق
+      const remaining = 300 - elapsedSeconds;
 
       if (remaining <= 0) {
         handleCancelRequest(activeRequest.id);
@@ -153,7 +152,7 @@ function StudentRequest() {
       }
     };
 
-    checkTime(); // فحص فوري عند التحميل
+    checkTime();
     const timer = setInterval(checkTime, 1000);
 
     return () => clearInterval(timer);
@@ -194,7 +193,7 @@ function StudentRequest() {
         teacherName: null,
         teacherPhone: null,
         teacherPrice: null,
-        createdAt: serverTimestamp(), // 👈 ده اللي بنعتمد عليه في الحساب الحقيقي للوقت
+        createdAt: serverTimestamp(),
       };
 
       await addDoc(collection(db, "requests"), newReq);
@@ -379,22 +378,54 @@ function StudentRequest() {
                   onChange={(e) => setSubject(e.target.value)}
                   className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm text-navy dark:text-white"
                 >
-                  <optgroup label="المواد العلمية">
-                    <option value="رياضيات">رياضيات</option>
-                    <option value="فيزياء">فيزياء</option>
-                    <option value="كيمياء">كيمياء</option>
-                    <option value="أحياء">أحياء</option>
-                    <option value="علوم">علوم</option>
+                  <optgroup label="القرآن الكريم والشرعيات">
+                    <option value="تحفيظ قرآن وتجويد">تحفيظ قرآن وتجويد</option>
+                    <option value="تربية إسلامية">تربية إسلامية</option>
+                  </optgroup>
+                  <optgroup label="مراحل التأسيس والمهارات">
+                    <option value="تأسيس مبكر وقراءة وكتابة">
+                      تأسيس مبكر (قراءة وكتابة)
+                    </option>
+                    <option value="تأسيس لغة إنجليزية (Phonics)">
+                      تأسيس لغة إنجليزية (Phonics)
+                    </option>
+                    <option value="تأسيس رياضيات وحساب">
+                      تأسيس رياضيات وحساب
+                    </option>
+                  </optgroup>
+                  <optgroup label="رياضيات">
+                    <option value="رياضيات (عربي)">رياضيات (عربي)</option>
+                    <option value="رياضيات (لغات)">
+                      رياضيات (لغات - Math)
+                    </option>
+                  </optgroup>
+                  <optgroup label="العلوم والفيزياء والكيمياء والأحياء">
+                    <option value="علوم (عربي)">علوم (عربي)</option>
+                    <option value="علوم (لغات)">علوم (لغات - Science)</option>
+                    <option value="فيزياء (عربي)">فيزياء (عربي)</option>
+                    <option value="فيزياء (لغات)">
+                      فيزياء (لغات - Physics)
+                    </option>
+                    <option value="كيمياء (عربي)">كيمياء (عربي)</option>
+                    <option value="كيمياء (لغات)">
+                      كيمياء (لغات - Chemistry)
+                    </option>
+                    <option value="أحياء (عربي)">أحياء (عربي)</option>
+                    <option value="أحياء (لغات)">أحياء (لغات - Biology)</option>
+                    <option value="جيولوجيا">جيولوجيا</option>
                   </optgroup>
                   <optgroup label="اللغات">
                     <option value="لغة عربية">لغة عربية</option>
-                    <option value="لغة إنجليزية">لغة إنجليزية</option>
-                    <option value="لغة فرنسية">لغة فرنسية</option>
+                    <option value="لغة إنجليزية">لغة إنجليزية (English)</option>
+                    <option value="لغة فرنسية">لغة فرنسية (Français)</option>
+                    <option value="لغة ألمانية">لغة ألمانية (Deutsch)</option>
                   </optgroup>
                   <optgroup label="المواد الأدبية">
                     <option value="تاريخ">تاريخ</option>
                     <option value="جغرافيا">جغرافيا</option>
-                    <option value="فلسفة">فلسفة</option>
+                    <option value="فلسفة ومنطق">فلسفة ومنطق</option>
+                    <option value="علم نفس واجتماع">علم نفس واجتماع</option>
+                    <option value="دراسات اجتماعية">دراسات اجتماعية</option>
                   </optgroup>
                 </select>
               </div>
