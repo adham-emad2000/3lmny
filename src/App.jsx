@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./Context/AuthContext"; // 👈 استدعاء الكونتكس
+import { Analytics } from "@vercel/analytics/react"; // 👈 استدعاء تحليل زيارات Vercel
 import Nav from "./Componants/Nav";
 import Hero from "./Componants/Hero";
 import TeacherPricingCTA from "./Componants/TeacherPricingCTA";
@@ -114,6 +115,8 @@ function App() {
 
           <Footer />
         </div>
+        {/* 👈 مكوّن قياس الزيارات والصفحات */}
+        <Analytics />
       </AuthProvider>
     </Router>
   );
