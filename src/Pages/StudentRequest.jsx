@@ -35,9 +35,8 @@ function StudentRequest() {
 
   const [activeRequest, setActiveRequest] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(300); // 5 دقائق (300 ثانية)
+  const [timeLeft, setTimeLeft] = useState(300); // 5 دقائق بالثواني
 
-  // دالة تنسيق رقم الواتساب بالصيغة المظبوطة بالـ +
   const getWhatsAppUrl = (phone, teacherName, studentName, lessonTime) => {
     if (!phone) return "#";
     let cleaned = phone.replace(/\D/g, "");
@@ -105,6 +104,7 @@ function StudentRequest() {
     "شمال سيناء": ["العريش", "بئر العبد", "رفح"],
   };
 
+  // مراقبة الطلب الفعّال
   useEffect(() => {
     if (!userData?.uid) return;
 
@@ -116,9 +116,9 @@ function StudentRequest() {
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       if (!snapshot.empty) {
-        const reqData = { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
-        setActiveRequest(reqData);
-        setTimeLeft(300); // إعادة تعيين العداد عند وجود طلب
+        const docSnap = snapshot.docs[0];
+        const data = docSnap.data();
+        setActiveRequest({ id: docSnap.id, ...data });
       } else {
         setActiveRequest(null);
       }
@@ -127,20 +127,34 @@ function StudentRequest() {
     return () => unsubscribe();
   }, [userData]);
 
-  // عداد الـ 5 دقائق التنازلي
+  // عداد حقيقي مبني على وقت الإنشاء الحقيقي في الفايربيز (يعمل بدقة حتى لو خرجت من الصفحة ورجعت)
   useEffect(() => {
-    if (!activeRequest || activeRequest.status !== "pending") return;
+    if (
+      !activeRequest ||
+      activeRequest.status !== "pending" ||
+      !activeRequest.createdAt
+    ) {
+      return;
+    }
 
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          handleCancelRequest(activeRequest.id); // حذف الطلب تلقائياً لو خلص الوقت
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    const checkTime = () => {
+      const createdAtMillis = activeRequest.createdAt.toMillis
+        ? activeRequest.createdAt.toMillis()
+        : Date.now();
+
+      const now = Date.now();
+      const elapsedSeconds = Math.floor((now - createdAtMillis) / 1000);
+      const remaining = 300 - elapsedSeconds; // 300 ثانية = 5 دقائق
+
+      if (remaining <= 0) {
+        handleCancelRequest(activeRequest.id);
+      } else {
+        setTimeLeft(remaining);
+      }
+    };
+
+    checkTime(); // فحص فوري عند التحميل
+    const timer = setInterval(checkTime, 1000);
 
     return () => clearInterval(timer);
   }, [activeRequest]);
@@ -180,7 +194,7 @@ function StudentRequest() {
         teacherName: null,
         teacherPhone: null,
         teacherPrice: null,
-        createdAt: serverTimestamp(),
+        createdAt: serverTimestamp(), // 👈 ده اللي بنعتمد عليه في الحساب الحقيقي للوقت
       };
 
       await addDoc(collection(db, "requests"), newReq);
@@ -200,7 +214,6 @@ function StudentRequest() {
     }
   };
 
-  // موافقة الطالب على سعر المدرس المقترح (التفاوض)
   const handleAcceptCounterOffer = async (reqId, teacherPrice) => {
     try {
       await updateDoc(doc(db, "requests", reqId), {
@@ -226,7 +239,7 @@ function StudentRequest() {
       <div className="max-w-3xl mx-auto space-y-8">
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-extrabold text-navy dark:text-white">
-            اطلب حصتك اللحظية 🚀
+            اطلب حصتك الان 🚀
           </h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm">
             حدد طلبك، رقمك، وميعاد الحصة، وسيتم إرسال الطلب للمعلمين فوراً.
@@ -281,7 +294,6 @@ function StudentRequest() {
               </div>
             </div>
 
-            {/* حالة التفاوض (المدرس اقترح سعر جديد) */}
             {activeRequest.status === "negotiating" ? (
               <div className="bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-900 p-4 rounded-2xl space-y-3">
                 <h4 className="font-bold text-purple-800 dark:text-purple-300 text-sm">

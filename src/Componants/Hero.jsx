@@ -24,7 +24,7 @@ function Hero() {
           <div className="space-y-6">
             <div className="inline-flex items-center gap-2 bg-emerald-50 dark:bg-emerald-950/60 px-4 py-2 rounded-full shadow-sm border border-emerald-200 dark:border-emerald-900 text-emerald-700 dark:text-emerald-400 text-sm font-bold">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-              🟢 لوحة تحكم المعلم اللحظية نشطة
+              🟢 لوحة تحكم المدرس
             </div>
 
             <h1 className="text-4xl lg:text-5xl font-extrabold text-navy dark:text-white leading-tight">
@@ -82,7 +82,7 @@ function Hero() {
                 to="/student-request"
                 className="bg-primary hover:bg-blue-700 text-white font-bold px-6 py-4 rounded-xl shadow-lg shadow-blue-500/25 transition-all duration-300 hover:-translate-y-1 text-center cursor-pointer"
               >
-                اطلب طلب حالا 🚀
+                اطلب حصتك الان 🚀
               </Link>
               <Link
                 to="/teachers"
@@ -129,7 +129,7 @@ function Hero() {
 
             <div className="flex items-center justify-between mb-6">
               <span className="text-xs font-bold text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/50 px-3 py-1 rounded-full border border-purple-200 dark:border-purple-900">
-                ✨ نظام المزايدة والتفاوض
+                ✨ نظام التفاوض
               </span>
               <span className="flex h-3 w-3 relative">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -138,7 +138,7 @@ function Hero() {
             </div>
 
             <h3 className="text-xl font-black text-navy dark:text-white mb-4">
-              كيف يعمل النظام اللحظي؟
+              كيف يعمل الطلب اللحظي
             </h3>
 
             <div className="space-y-3 mb-4">

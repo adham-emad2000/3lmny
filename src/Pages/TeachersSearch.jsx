@@ -302,14 +302,18 @@ function TeachersSearch() {
                           <h3 className="font-bold text-navy dark:text-white text-base">
                             {teacher.name}
                           </h3>
+
+                          {/* بادج الـ Pro الذهبي */}
                           {subStatus && subTier === "pro" && (
-                            <span className="text-[10px] bg-purple-600 text-white px-2.5 py-0.5 rounded-full font-bold shadow-sm">
-                              مميز ومقترح
+                            <span className="inline-flex items-center gap-2 px-5 py-1.5 rounded-full font-black text-amber-950 bg-amber-400 border-2 border-amber-200 shadow-[0_0_15px_rgba(251,191,36,0.5)] tracking-wide uppercase text-[11px]">
+                              <span>👑</span> مميز ومقترح
                             </span>
                           )}
+
+                          {/* بادج الـ Standard الذهبي (ممكن تخليه نفس اللون أو تفتحه درجة) */}
                           {subStatus && subTier === "standard" && (
-                            <span className="text-[10px] bg-amber-500 text-white px-2.5 py-0.5 rounded-full font-bold shadow-sm">
-                              مميز ومقترح
+                            <span className="inline-flex items-center gap-2 px-5 py-1.5 rounded-full font-bold text-amber-950 bg-amber-300 border-2 border-amber-100 shadow-sm tracking-wide uppercase text-[11px]">
+                              <span>⭐</span> مميز ومقترح
                             </span>
                           )}
                         </div>
