@@ -45,7 +45,18 @@ function Subscribe() {
   const userData = JSON.parse(localStorage.getItem("elemny_user_data") || "{}");
   const userId = userData.uid;
 
-  // 1. تفعيل البرومو كود الفوري مع التحقق من توافقه مع الباقة الحالية
+  // دالة حساب مدة الاشتراك بدقة: Standard = 3 شهور، Pro = 6 شهور
+  const getExpiryDateForTier = (tier) => {
+    const date = new Date();
+    if (tier === "standard") {
+      date.setMonth(date.getMonth() + 3); // 3 شهور
+    } else if (tier === "pro") {
+      date.setMonth(date.getMonth() + 6); // 6 شهور
+    }
+    return date.toISOString();
+  };
+
+  // 1. تفعيل البرومو كود
   const handleApplyPromo = async (e) => {
     e.preventDefault();
     setPromoMessage("");
@@ -56,14 +67,12 @@ function Subscribe() {
     }
 
     const code = promoCode.trim().toLowerCase();
-    const currentPlanLower = planName.toLowerCase(); // الباقة اللي اليوزر واقف فيها حاليا (Standard أو Pro)
+    const currentPlanLower = planName.toLowerCase();
     let targetTier = "";
 
-    // تحديد الباقة المستهدفة بناءً على الكود المدخل
     if (code === "uwk100") targetTier = "standard";
     if (code === "uwk200") targetTier = "pro";
 
-    // 🛡️ شرط الحماية: التأكد أن الكود يوافق الباقة الحالية التي يحاول الاشتراك بها
     if (targetTier) {
       if (targetTier !== currentPlanLower) {
         setPromoMessage(`❌ غير صحيح هذا الكود`);
@@ -72,16 +81,16 @@ function Subscribe() {
 
       setLoading(true);
       try {
+        const calculatedExpiry = getExpiryDateForTier(targetTier);
         const userRef = doc(db, "users", userId);
+
         await updateDoc(userRef, {
           "subscription.tier": targetTier,
           "subscription.status": "active",
           "subscription.requestStatus": "approved",
           "subscription.promoUsed": code,
           "subscription.startDate": new Date().toISOString(),
-          "subscription.expiryDate": new Date(
-            Date.now() + 365 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
+          "subscription.expiryDate": calculatedExpiry,
         });
 
         userData.subscription = {
@@ -90,12 +99,12 @@ function Subscribe() {
           status: "active",
           requestStatus: "approved",
           promoUsed: code,
+          startDate: new Date().toISOString(),
+          expiryDate: calculatedExpiry,
         };
         localStorage.setItem("elemny_user_data", JSON.stringify(userData));
 
-        alert(
-          `🎉 تم تفعيل باقة ${targetTier.toUpperCase()} بنجاح عبر البرومو كود!`,
-        );
+        alert(`🎉 تم تفعيل باقة ${targetTier.toUpperCase()} بنجاح!`);
         navigate("/", { replace: true });
       } catch (error) {
         console.error("Promo Error:", error);
@@ -108,7 +117,7 @@ function Subscribe() {
     }
   };
 
-  // 2. رفع الإيصال اليدوي (طلب معلق للأدمن)
+  // 2. الدفع اليدوي
   const handleManualPayment = async (e) => {
     e.preventDefault();
     if (!screenshot) {
@@ -127,27 +136,29 @@ function Subscribe() {
       reader.onload = async () => {
         const base64Image = reader.result;
         const userRef = doc(db, "users", userId);
+        const targetTier = planName.toLowerCase();
+        const calculatedExpiry = getExpiryDateForTier(targetTier);
 
         await updateDoc(userRef, {
-          "subscription.requestedTier": planName.toLowerCase(),
+          "subscription.requestedTier": targetTier,
           "subscription.status": "pending",
           "subscription.requestStatus": "pending",
           "subscription.paymentReceipt": base64Image,
           "subscription.requestedAt": new Date().toISOString(),
+          "subscription.tempExpiryDate": calculatedExpiry, // تخزين مؤقت للانتهاء
         });
 
         userData.subscription = {
           ...userData.subscription,
-          requestedTier: planName.toLowerCase(),
+          requestedTier: targetTier,
           status: "pending",
           requestStatus: "pending",
           paymentReceipt: base64Image,
+          tempExpiryDate: calculatedExpiry,
         };
         localStorage.setItem("elemny_user_data", JSON.stringify(userData));
 
-        alert(
-          "✅ تم إرسال الإيصال بنجاح! حسابك سيبقى 'فري' لحين مراجعة الإدارة وتفعيل الباقة.",
-        );
+        alert("✅ تم إرسال الإيصال بنجاح! الإدارة ستقوم بتفعيل الباقة قريباً.");
         navigate("/", { replace: true });
       };
     } catch (error) {
@@ -163,8 +174,9 @@ function Subscribe() {
       <div className="max-w-4xl mx-auto space-y-12">
         <div className="text-center space-y-3">
           <span className="bg-primary/20 text-blue-400 text-xs font-bold px-3.5 py-1.5 rounded-full border border-primary/30">
-            ⭐ صفحة إتمام الاشتراك الفاخرة
+            ⭐ عرض علي الباقات لمده شهر واحد فقط
           </span>
+
           <h1 className="text-3xl md:text-4xl font-black">
             تفعيل باقة <span className="text-primary">{planName}</span>
           </h1>
@@ -222,7 +234,7 @@ function Subscribe() {
           </div>
         </div>
 
-        {/* Promo Code - تم إخفاء الأكواد من الـ Placeholder تماماً لأمان السيستم */}
+        {/* Promo Code */}
         <div className="bg-gray-900 border border-gray-800 rounded-3xl p-6 md:p-8 space-y-4 shadow-xl">
           <h3 className="text-lg font-extrabold flex items-center gap-2">
             <Zap className="w-5 h-5 text-amber-400" /> برومو كود التفعيل الفوري
@@ -273,7 +285,7 @@ function Subscribe() {
           <form onSubmit={handleManualPayment} className="space-y-4 pt-2">
             <div>
               <label className="block text-xs font-bold text-gray-300 mb-2">
-                اررفع اسكرين شوت إيصال التحويل:
+                ارفع اسكرين شوت إيصال التحويل:
               </label>
               <input
                 type="file"

@@ -51,7 +51,7 @@ function UpgradePage() {
       rawName: "standard",
       price: "100 ج.م",
       rawPrice: "100",
-      period: "في السنة",
+      period: "لمدة 3 أشهر", // 👈 تم التعديل لتكون 3 أشهر صحيحة
       description:
         "باقة الأذك تمنحك مرونة كاملة وسرعة استجابة تضاعف فرص قبولك.",
       features: [
@@ -68,7 +68,7 @@ function UpgradePage() {
       rawName: "pro",
       price: "250 ج.م",
       rawPrice: "250",
-      period: "في السنة",
+      period: "لمدة 6 أشهر", // 👈 تم التعديل لتكون 6 أشهر صحيحة (من أغسطس إلى يناير)
       description:
         "باقة النخبة والسيطرة، القمة والظهور الأقصى لمضاعفة دخلك وطلابك.",
       features: [
@@ -257,7 +257,9 @@ function UpgradePage() {
                 <strong className="text-navy dark:text-white font-mono">
                   {userData?.subscription?.expiryDate
                     ? formatDate(userData.subscription.expiryDate)
-                    : "صالح مدى الحياة / غير محدود"}
+                    : subStatus === "active"
+                      ? "جاري التفعيل..."
+                      : "غير مشترك"}
                 </strong>
               </div>
 

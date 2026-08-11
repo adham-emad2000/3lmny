@@ -30,10 +30,28 @@ function AdminDashboard() {
     fetchAllUsers();
   }, []);
 
+  // دالة حساب مدة الاشتراك بدقة حسب الباقة: Standard = 3 شهور، Pro = 6 شهور
+  // بتتحسب من لحظة الموافقة نفسها (مش من وقت رفع الإيصال)
+  const getExpiryDateForTier = (tier) => {
+    const date = new Date();
+    const normalizedTier = (tier || "").toLowerCase();
+    if (normalizedTier === "standard") {
+      date.setMonth(date.getMonth() + 3);
+    } else if (normalizedTier === "pro") {
+      date.setMonth(date.getMonth() + 6);
+    } else {
+      // fallback احتياطي في حالة قيمة غير متوقعة، افتراضي 3 شهور
+      date.setMonth(date.getMonth() + 3);
+    }
+    return date.toISOString();
+  };
+
   // الموافقة على الطلب وتحويله للباقة الجديدة
   const handleApprove = async (userId, requestedTier) => {
     try {
       const userRef = doc(db, "users", userId);
+      const calculatedExpiry = getExpiryDateForTier(requestedTier);
+
       await updateDoc(userRef, {
         "subscription.tier": requestedTier,
         "subscription.status": "active",
@@ -41,9 +59,8 @@ function AdminDashboard() {
         "subscription.requestedTier": null,
         "subscription.paymentReceipt": null,
         "subscription.startDate": new Date().toISOString(),
-        "subscription.expiryDate": new Date(
-          Date.now() + 365 * 24 * 60 * 60 * 1000,
-        ).toISOString(),
+        "subscription.expiryDate": calculatedExpiry,
+        "subscription.tempExpiryDate": null, // تنظيف القيمة المؤقتة بعد التفعيل الفعلي
       });
       alert("✅ تمت الموافقة وتفعيل باقة المعلم بنجاح!");
       fetchAllUsers();
@@ -62,6 +79,7 @@ function AdminDashboard() {
         "subscription.requestStatus": "rejected", // أرشفة الطلب كمرفوض
         "subscription.requestedTier": null,
         "subscription.paymentReceipt": null,
+        "subscription.tempExpiryDate": null,
       });
       alert("❌ تم رفض الطلب وإبقاء المعلم على باقته السابقة.");
       fetchAllUsers();
