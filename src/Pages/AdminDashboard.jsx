@@ -35,7 +35,9 @@ function AdminDashboard() {
     pendingRequests: 0,
   });
 
-  const ADMIN_EMAIL = "your-email@example.com"; // 👈 حط إيميلك هنا
+  // 👇 حط إيميلك الحقيقي هنا، ولازم يكون مطابق حرفياً لنفس الإيميل
+  // المكتوب في isAdmin() جوا Firestore Rules
+  const ADMIN_EMAIL = "adhamxx05@gmail.com";
   const currentUserEmail = auth.currentUser?.email;
 
   const fetchAllData = async () => {
@@ -160,7 +162,6 @@ function AdminDashboard() {
       </div>
     );
 
-  // تصفية المستخدمين بناءً على التبويب النشط
   const filteredUsers = users.filter((u) => {
     const reqStatus = u.subscription?.requestStatus;
     if (activeTab === "pending") return reqStatus === "pending";
@@ -174,7 +175,6 @@ function AdminDashboard() {
   return (
     <div dir="rtl" className="min-h-screen bg-gray-950 text-white py-12 px-6">
       <div className="max-w-6xl mx-auto space-y-8">
-        {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl font-black flex items-center gap-2">
@@ -188,7 +188,6 @@ function AdminDashboard() {
           </div>
         </div>
 
-        {/* 📊 بطاقات الإحصائيات (Stats Cards) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <div className="bg-gray-900 border border-gray-800 p-5 rounded-3xl space-y-2 shadow-sm">
             <div className="flex items-center justify-between text-gray-400">
@@ -257,7 +256,6 @@ function AdminDashboard() {
           </div>
         </div>
 
-        {/* تبويبات التنقل */}
         <div className="flex justify-between items-center flex-wrap gap-4 pt-4 border-t border-gray-900">
           <h2 className="text-lg font-extrabold">
             {activeTab === "students" && "قائمة الطلاب المسجلين بالمنصة 👨‍🎓"}
@@ -323,7 +321,6 @@ function AdminDashboard() {
           </div>
         </div>
 
-        {/* عرض القوائم والكاردز حسب التبويب */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {filteredUsers.length > 0 ? (
             filteredUsers.map((user) => (

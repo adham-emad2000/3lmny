@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../firebase";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore"; // غيرنا onSnapshot لـ getDocs
 
 function TeachersSearch() {
   const navigate = useNavigate();
@@ -33,27 +33,31 @@ function TeachersSearch() {
     localStorage.setItem("teacherFavorites", JSON.stringify(favorites));
   }, [favorites]);
 
+  // 🔴 التعديل الأول: استخدام getDocs بدل onSnapshot لتقليل التكلفة
   useEffect(() => {
-    setLoading(true);
-    const q = query(collection(db, "users"), where("role", "==", "teacher"));
+    const fetchAllTeachers = async () => {
+      setLoading(true);
+      try {
+        const q = query(
+          collection(db, "users"),
+          where("role", "==", "teacher"),
+        );
+        const querySnapshot = await getDocs(q);
 
-    const unsubscribe = onSnapshot(
-      q,
-      (querySnapshot) => {
         const teachersList = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
-        setTeachers(teachersList);
-        setLoading(false);
-      },
-      (error) => {
-        console.error("Error fetching teachers in real-time:", error);
-        setLoading(false);
-      },
-    );
 
-    return () => unsubscribe();
+        setTeachers(teachersList);
+      } catch (error) {
+        console.error("Error fetching teachers:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllTeachers();
   }, []);
 
   const toggleFavorite = (id) => {
@@ -73,7 +77,7 @@ function TeachersSearch() {
       cleaned = "20" + cleaned;
     }
     return `https://api.whatsapp.com/send?phone=+${cleaned}&text=${encodeURIComponent(
-      `ازيك يا ${name}، أنا شفت بروفايلك على منصة "علمني" وحابب أتفق معاك على درس.`,
+      `ازيك يا أستاذ ${name}، أنا شفت بروفايلك على منصة "علمني" وحابب أتفق معاك على درس.`,
     )}`;
   };
 
@@ -145,14 +149,20 @@ function TeachersSearch() {
     return 0;
   };
 
+  // 🔴 التعديل الثاني: تحسين بحث الاسم ليكون أذكى ولا يتأثر بالمسافات أو حالة الأحرف
   const filteredTeachers = teachers
     .filter((t) => {
-      return (
-        (governorate === "" || t.governorate === governorate) &&
-        (subject === "" || t.subject === subject) &&
-        (area === "" || (t.area && t.area.includes(area))) &&
-        (searchName === "" || (t.name && t.name.includes(searchName)))
-      );
+      const matchGovernorate =
+        governorate === "" || t.governorate === governorate;
+      const matchSubject = subject === "" || t.subject === subject;
+      const matchArea = area === "" || (t.area && t.area.includes(area));
+
+      const safeSearchName = searchName.trim().toLowerCase();
+      const safeTeacherName = (t.name || "").toLowerCase();
+      const matchName =
+        safeSearchName === "" || safeTeacherName.includes(safeSearchName);
+
+      return matchGovernorate && matchSubject && matchArea && matchName;
     })
     .sort((a, b) => getTierWeight(b) - getTierWeight(a));
 
@@ -313,7 +323,7 @@ function TeachersSearch() {
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="font-bold text-navy dark:text-white text-base">
-                            {teacher.name}
+                            أ. {teacher.name}
                           </h3>
 
                           {subStatus && subTier === "pro" && (
@@ -353,7 +363,6 @@ function TeachersSearch() {
                       </span>
                     </div>
 
-                    {/* 👈 عرض الصفوف الدراسية على الكارت */}
                     <div className="flex flex-col gap-1 bg-gray-50 dark:bg-gray-800/50 p-2.5 rounded-xl border border-gray-100 dark:border-gray-800">
                       <span className="text-gray-500 dark:text-gray-400 font-medium">
                         الصفوف الدراسية:

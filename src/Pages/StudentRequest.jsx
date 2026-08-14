@@ -35,7 +35,6 @@ function StudentRequest() {
 
   const [activeRequest, setActiveRequest] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(300); // 5 دقائق بالثواني
 
   const getWhatsAppUrl = (phone, teacherName, studentName, lessonTime) => {
     if (!phone) return "#";
@@ -104,7 +103,7 @@ function StudentRequest() {
     "شمال سيناء": ["العريش", "بئر العبد", "رفح"],
   };
 
-  // مراقبة الطلب الفعّال
+  // مراقبة الطلب الفعّال (بدون وقت محدد للانتهاء)
   useEffect(() => {
     if (!userData?.uid) return;
 
@@ -126,37 +125,6 @@ function StudentRequest() {
 
     return () => unsubscribe();
   }, [userData]);
-
-  useEffect(() => {
-    if (
-      !activeRequest ||
-      activeRequest.status !== "pending" ||
-      !activeRequest.createdAt
-    ) {
-      return;
-    }
-
-    const checkTime = () => {
-      const createdAtMillis = activeRequest.createdAt.toMillis
-        ? activeRequest.createdAt.toMillis()
-        : Date.now();
-
-      const now = Date.now();
-      const elapsedSeconds = Math.floor((now - createdAtMillis) / 1000);
-      const remaining = 300 - elapsedSeconds;
-
-      if (remaining <= 0) {
-        handleCancelRequest(activeRequest.id);
-      } else {
-        setTimeLeft(remaining);
-      }
-    };
-
-    checkTime();
-    const timer = setInterval(checkTime, 1000);
-
-    return () => clearInterval(timer);
-  }, [activeRequest]);
 
   const handleCreateRequest = async (e) => {
     e.preventDefault();
@@ -193,7 +161,7 @@ function StudentRequest() {
         teacherName: null,
         teacherPhone: null,
         teacherPrice: null,
-        createdAt: serverTimestamp(),
+        createdAt: serverTimestamp(), // دي مهمة جداً عشان ترتيب الطلبات للمدرس
       };
 
       await addDoc(collection(db, "requests"), newReq);
@@ -224,12 +192,6 @@ function StudentRequest() {
     }
   };
 
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs < 10 ? "0" : ""}${secs}`;
-  };
-
   return (
     <div
       dir="rtl"
@@ -241,7 +203,7 @@ function StudentRequest() {
             اطلب حصتك الان 🚀
           </h1>
           <p className="text-gray-500 dark:text-gray-400 text-sm">
-            حدد طلبك، رقمك، وميعاد الحصة، وسيتم إرسال الطلب للمعلمين فوراً.
+            حدد طلبك، وسنقوم بنشره فوراً في لوحة المعلمين لتلقي العروض.
           </p>
         </div>
 
@@ -250,11 +212,12 @@ function StudentRequest() {
             <div className="flex justify-between items-center border-b border-gray-100 dark:border-gray-800 pb-4">
               <div className="flex items-center gap-3">
                 <span className="bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-400 text-xs font-bold px-3 py-1 rounded-full">
-                  ⚡ طلبك جاري البحث عن معلمين...
+                  🎫 طلبك منشور الآن في لوحة المعلمين...
                 </span>
                 {activeRequest.status === "pending" && (
-                  <span className="text-xs font-bold text-red-500 bg-red-50 dark:bg-red-950/50 px-2.5 py-1 rounded-full">
-                    ⏳ ينتهي خلال: {formatTime(timeLeft)}
+                  <span className="text-xs font-bold text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                    في انتظار العروض
                   </span>
                 )}
               </div>
@@ -354,14 +317,7 @@ function StudentRequest() {
                   </a>
                 </div>
               </div>
-            ) : (
-              <div className="text-center py-8 space-y-3">
-                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
-                <p className="text-xs text-gray-500">
-                  في انتظار قبول معلم أو تقديم عرض سعر في نطاقك...
-                </p>
-              </div>
-            )}
+            ) : null}
           </div>
         ) : (
           <form
@@ -576,9 +532,7 @@ function StudentRequest() {
               disabled={loading}
               className="w-full bg-primary hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-500/20 transition-all text-sm cursor-pointer"
             >
-              {loading
-                ? "جاري الإرسال..."
-                : "ابحث عن معلم ونشر الطلب اللحظي 🚀"}
+              {loading ? "جاري الإرسال..." : "نشر الطلب للمعلمين 🚀"}
             </button>
           </form>
         )}

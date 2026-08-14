@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { db } from "../firebase";
 import { doc, updateDoc } from "firebase/firestore";
-import { ChevronLeft, ChevronRight, ShieldCheck, Zap } from "lucide-react";
+import { ChevronLeft, ChevronRight, ShieldCheck } from "lucide-react";
 
 function Subscribe() {
   const [searchParams] = useSearchParams();
@@ -37,87 +37,24 @@ function Subscribe() {
   const prevSlide = () =>
     setCurrentSlide((prev) => (prev === 0 ? slides.length - 1 : prev - 1));
 
-  const [promoCode, setPromoCode] = useState("");
-  const [promoMessage, setPromoMessage] = useState("");
   const [screenshot, setScreenshot] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const userData = JSON.parse(localStorage.getItem("elemny_user_data") || "{}");
   const userId = userData.uid;
 
-  // دالة حساب مدة الاشتراك بدقة: Standard = 3 شهور، Pro = 6 شهور
+  // دالة حساب مدة الاشتراك: Standard = 3 شهور، Pro = 6 شهور
   const getExpiryDateForTier = (tier) => {
     const date = new Date();
     if (tier === "standard") {
-      date.setMonth(date.getMonth() + 3); // 3 شهور
+      date.setMonth(date.getMonth() + 3);
     } else if (tier === "pro") {
-      date.setMonth(date.getMonth() + 6); // 6 شهور
+      date.setMonth(date.getMonth() + 6);
     }
     return date.toISOString();
   };
 
-  // 1. تفعيل البرومو كود
-  const handleApplyPromo = async (e) => {
-    e.preventDefault();
-    setPromoMessage("");
-
-    if (!userId) {
-      alert("خطأ: يرجى تسجيل الدخول مرة أخرى.");
-      return;
-    }
-
-    const code = promoCode.trim().toLowerCase();
-    const currentPlanLower = planName.toLowerCase();
-    let targetTier = "";
-
-    if (code === "uwk100") targetTier = "standard";
-    if (code === "uwk200") targetTier = "pro";
-
-    if (targetTier) {
-      if (targetTier !== currentPlanLower) {
-        setPromoMessage(`❌ غير صحيح هذا الكود`);
-        return;
-      }
-
-      setLoading(true);
-      try {
-        const calculatedExpiry = getExpiryDateForTier(targetTier);
-        const userRef = doc(db, "users", userId);
-
-        await updateDoc(userRef, {
-          "subscription.tier": targetTier,
-          "subscription.status": "active",
-          "subscription.requestStatus": "approved",
-          "subscription.promoUsed": code,
-          "subscription.startDate": new Date().toISOString(),
-          "subscription.expiryDate": calculatedExpiry,
-        });
-
-        userData.subscription = {
-          ...userData.subscription,
-          tier: targetTier,
-          status: "active",
-          requestStatus: "approved",
-          promoUsed: code,
-          startDate: new Date().toISOString(),
-          expiryDate: calculatedExpiry,
-        };
-        localStorage.setItem("elemny_user_data", JSON.stringify(userData));
-
-        alert(`🎉 تم تفعيل باقة ${targetTier.toUpperCase()} بنجاح!`);
-        navigate("/", { replace: true });
-      } catch (error) {
-        console.error("Promo Error:", error);
-        alert("حدث خطأ أثناء تفعيل البرومو.");
-      } finally {
-        setLoading(false);
-      }
-    } else {
-      setPromoMessage("❌ برومو كود غير صحيح.");
-    }
-  };
-
-  // 2. الدفع اليدوي
+  // الدفع اليدوي: رفع إيصال ليراجعه الأدمن (التفعيل يتم من AdminDashboard فقط)
   const handleManualPayment = async (e) => {
     e.preventDefault();
     if (!screenshot) {
@@ -145,7 +82,7 @@ function Subscribe() {
           "subscription.requestStatus": "pending",
           "subscription.paymentReceipt": base64Image,
           "subscription.requestedAt": new Date().toISOString(),
-          "subscription.tempExpiryDate": calculatedExpiry, // تخزين مؤقت للانتهاء
+          "subscription.tempExpiryDate": calculatedExpiry,
         });
 
         userData.subscription = {
@@ -232,32 +169,6 @@ function Subscribe() {
               التالي <ChevronLeft className="w-4 h-4" />
             </button>
           </div>
-        </div>
-
-        {/* Promo Code */}
-        <div className="bg-gray-900 border border-gray-800 rounded-3xl p-6 md:p-8 space-y-4 shadow-xl">
-          <h3 className="text-lg font-extrabold flex items-center gap-2">
-            <Zap className="w-5 h-5 text-amber-400" /> برومو كود التفعيل الفوري
-          </h3>
-          <form onSubmit={handleApplyPromo} className="flex gap-3">
-            <input
-              type="text"
-              placeholder="أدخل برومو كود التفعيل..."
-              value={promoCode}
-              onChange={(e) => setPromoCode(e.target.value)}
-              className="flex-1 bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white focus:border-primary outline-none"
-            />
-            <button
-              type="submit"
-              disabled={loading}
-              className="bg-primary hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl text-xs transition-all cursor-pointer"
-            >
-              تفعيل فوري 🚀
-            </button>
-          </form>
-          {promoMessage && (
-            <p className="text-xs text-red-400 font-bold">{promoMessage}</p>
-          )}
         </div>
 
         {/* Manual Payment */}

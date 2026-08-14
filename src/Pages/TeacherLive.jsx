@@ -22,9 +22,9 @@ function TeacherLive() {
   const [myLessons, setMyLessons] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Pagination states
+  // Pagination states (تم التعديل لـ 4 طلبات في الصفحة كحد أقصى)
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 6;
+  const itemsPerPage = 4;
 
   // Counter offer input state per request id: { [requestId]: price }
   const [counterPrices, setCounterPrices] = useState({});
@@ -75,11 +75,18 @@ function TeacherLive() {
         ...d.data(),
       }));
 
-      const pending = allRequests.filter(
-        (req) =>
-          req.status === "pending" &&
-          (!userData.subject || req.subject === userData.subject),
-      );
+      // فلترة الطلبات المعلقة وترتيبها من الأحدث للأقدم عشان الجديد يظهر أول واحد
+      const pending = allRequests
+        .filter(
+          (req) =>
+            req.status === "pending" &&
+            (!userData.subject || req.subject === userData.subject),
+        )
+        .sort((a, b) => {
+          const timeA = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
+          const timeB = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
+          return timeB - timeA;
+        });
 
       // تشغيل الصوت لو زاد عدد الطلبات المعلقة الجديدة
       if (
@@ -152,7 +159,7 @@ function TeacherLive() {
     }
   };
 
-  // Pagination Logic للطلبات المعلقة (6 في الصفحة)
+  // Pagination Logic للطلبات المعلقة (4 في الصفحة)
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentPendingRequests = pendingRequests.slice(
@@ -160,6 +167,13 @@ function TeacherLive() {
     indexOfLastItem,
   );
   const totalPages = Math.ceil(pendingRequests.length / itemsPerPage);
+
+  // التأكد من أن الصفحة الحالية لا تتجاوز عدد الصفحات المتاحة لو تم حذف طلبات
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [pendingRequests, currentPage, totalPages]);
 
   return (
     <div
@@ -285,7 +299,7 @@ function TeacherLive() {
           </div>
         )}
 
-        {/* القسم الثاني: الطلبات الجديدة المعلقة مع Pagination والتفاوض */}
+        {/* القسم الثاني: الطلبات الجديدة المعلقة مع الباجينيشن */}
         <div className="space-y-4">
           <h2 className="text-lg font-extrabold text-navy dark:text-white">
             ⚡ الطلبات اللحظية الجديدة في منطقتك:
@@ -403,25 +417,41 @@ function TeacherLive() {
             )}
           </div>
 
-          {/* أزرار Pagination لو الطلبات أكتر من 6 */}
+          {/* الباجينيشن - بيظهر بس لو الطلبات أكتر من 4 */}
           {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-3 pt-4">
+            <div className="flex justify-center items-center gap-2 pt-6">
               <button
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="px-4 py-2 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-xs font-bold disabled:opacity-50 cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-xs font-bold disabled:opacity-50 cursor-pointer shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
               >
                 السابق
               </button>
-              <span className="text-xs font-bold text-gray-600 dark:text-gray-300">
-                صفحة {currentPage} من {totalPages}
-              </span>
+
+              <div className="flex gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-9 h-9 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center ${
+                        currentPage === page
+                          ? "bg-primary text-white shadow-md"
+                          : "bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ),
+                )}
+              </div>
+
               <button
                 onClick={() =>
                   setCurrentPage((p) => Math.min(totalPages, p + 1))
                 }
                 disabled={currentPage === totalPages}
-                className="px-4 py-2 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-xs font-bold disabled:opacity-50 cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 text-xs font-bold disabled:opacity-50 cursor-pointer shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
               >
                 التالي
               </button>

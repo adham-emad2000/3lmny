@@ -88,6 +88,9 @@ function Nav() {
     return null;
   }
 
+  const teacherTier = userData?.subscription?.tier || "free";
+  const isTeacherPro = userData?.role === "teacher" && teacherTier !== "free";
+
   return (
     <nav
       dir="rtl"
@@ -118,7 +121,7 @@ function Nav() {
       <div className="flex items-center gap-5">
         <button
           onClick={toggleDarkMode}
-          className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center text-navy dark:text-yellow-400 transition-transform active:scale-95 shadow-xs"
+          className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center text-navy dark:text-yellow-400 transition-transform active:scale-95 shadow-xs cursor-pointer"
           title="تغيير الوضع"
         >
           {isDark ? "☀️" : "🌙"}
@@ -171,10 +174,45 @@ function Nav() {
                       setDropdownOpen(false);
                       navigate("/profile");
                     }}
-                    className="w-full text-right flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors"
+                    className="w-full text-right flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors cursor-pointer"
                   >
                     <span>👤</span> تعديل وعرض البروفايل
                   </button>
+
+                  {/* 🏫 زر إدارة الغرف والفصول الافتراضية للمدرسين */}
+                  {userData.role === "teacher" && (
+                    <button
+                      onClick={() => {
+                        setDropdownOpen(false);
+                        navigate("/teacher-rooms");
+                      }}
+                      className="w-full text-right flex items-center justify-between px-3 py-2.5 text-xs font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-xl transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <span>🏫</span> إدارة الفصول (Rooms)
+                      </div>
+                      {!isTeacherPro && (
+                        <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">
+                          Pro
+                        </span>
+                      )}
+                    </button>
+                  )}
+
+                  {/* 🎓 زر فصول الطالب الدراسية */}
+                  {userData.role === "student" && (
+                    <button
+                      onClick={() => {
+                        setDropdownOpen(false);
+                        navigate("/student-rooms"); // أو المسار الخاص بصفحة الطالب
+                      }}
+                      className="w-full text-right flex items-center justify-between px-3 py-2.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-xl transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <span>📚</span> فصولي الدراسية (Rooms)
+                      </div>
+                    </button>
+                  )}
 
                   {userData.role === "teacher" && (
                     <button
@@ -182,7 +220,7 @@ function Nav() {
                         setDropdownOpen(false);
                         navigate("/upgrade");
                       }}
-                      className="w-full text-right flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 rounded-xl transition-colors"
+                      className="w-full text-right flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/30 rounded-xl transition-colors cursor-pointer"
                     >
                       <span>✨</span> ترقية الباقات والاشتراك
                     </button>
@@ -192,7 +230,7 @@ function Nav() {
 
                   <button
                     onClick={handleLogout}
-                    className="w-full text-right flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-colors"
+                    className="w-full text-right flex items-center gap-2.5 px-3 py-2.5 text-xs font-bold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-xl transition-colors cursor-pointer"
                   >
                     <span>🚪</span> تسجيل الخروج
                   </button>
@@ -203,7 +241,7 @@ function Nav() {
         ) : (
           <Link
             to="/auth"
-            className="bg-primary hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition-all shadow-md shadow-blue-500/20"
+            className="bg-primary hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition-all shadow-md shadow-blue-500/25"
           >
             تسجيل الدخول
           </Link>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { db } from "../firebase";
-import { collection, query, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore";
 
 function ProTeacher() {
   const [proTeachers, setProTeachers] = useState([]);
@@ -24,23 +24,19 @@ function ProTeacher() {
   useEffect(() => {
     const fetchProTeachers = async () => {
       try {
-        const q = query(collection(db, "users"));
+        const q = query(
+          collection(db, "users"),
+          where("role", "==", "teacher"),
+          where("subscription.tier", "==", "pro"),
+          where("subscription.status", "==", "active"),
+        );
         const querySnapshot = await getDocs(q);
         const teachersList = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
 
-        const filtered = teachersList.filter(
-          (t) =>
-            t.role === "teacher" &&
-            t.subscription &&
-            t.subscription.tier &&
-            t.subscription.tier.toLowerCase() === "pro" &&
-            t.subscription.status === "active",
-        );
-
-        setProTeachers(filtered);
+        setProTeachers(teachersList);
       } catch (error) {
         console.error("Error fetching pro teachers:", error);
       } finally {
@@ -128,7 +124,6 @@ function ProTeacher() {
                   </strong>
                 </div>
 
-                {/* 👈 عرض الصفوف الدراسية في قسم الكارد الرئيسي */}
                 <div className="flex flex-col gap-1">
                   <span>الصفوف:</span>
                   <div className="flex flex-wrap gap-1">
